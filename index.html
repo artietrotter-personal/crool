@@ -599,7 +599,7 @@ try { Object.assign(PREFS, JSON.parse(localStorage.getItem('crool-prefs') || '{}
 if (!['system', 'light', 'dark'].includes(PREFS.theme)) PREFS.theme = 'system';
 if (!FELTS[PREFS.felt]) PREFS.felt = 'green';
 if (!RAILS[PREFS.rail]) PREFS.rail = 'walnut';
-if (!['classic', 'sneaky', 'house', 'midnight'].includes(PREFS.cue)) PREFS.cue = 'classic';
+if (!['classic', 'sneaky', 'house', 'midnight', 'bigdom'].includes(PREFS.cue)) PREFS.cue = 'classic';
 if (typeof PREFS.chalk !== 'boolean') PREFS.chalk = true;
 if (!BALLS[PREFS.stripe]) PREFS.stripe = 'orange';
 if (!BALLS[PREFS.solid] || PREFS.solid === PREFS.stripe) PREFS.solid = PREFS.stripe === 'blue' ? 'orange' : 'blue';
@@ -757,7 +757,9 @@ const CUES = {
   classic: { name: 'Classic points', shaft: ['#EEDDB4', '#DCC08A'], collar: '#C9CCCF', forearm: '#D6B274', points: true, point: '#1F130D', veneer: '#ECE5D6', wrap: ['#191919', '#353535'], sleeve: '#24150E', inlay: '#EDE6D6', ring: '#C9CCCF' },
   sneaky: { name: 'Sneaky Pete', shaft: ['#EEDDB4', '#DCC08A'], collar: '#24150E', forearm: '#2B1810', points: false, wrap: null, sleeve: '#2B1810', inlay: null, ring: '#8E7A5A' },
   house: { name: 'House cue', shaft: ['#EAD3A2', '#D2AE6C'], collar: null, forearm: '#C99A5A', points: false, wrap: null, sleeve: '#6B3E1F', inlay: null, ring: '#1A1A1A' },
-  midnight: { name: 'Midnight', shaft: ['#F1E4C6', '#E2CC9C'], collar: '#BFC4C9', forearm: '#141414', points: true, point: '#BFC4C9', veneer: '#3A3A3A', wrap: ['#E8E4DA', '#C9C3B6'], sleeve: '#141414', inlay: '#BFC4C9', ring: '#BFC4C9' }
+  midnight: { name: 'Midnight', shaft: ['#F1E4C6', '#E2CC9C'], collar: '#BFC4C9', forearm: '#141414', points: true, point: '#BFC4C9', veneer: '#3A3A3A', wrap: ['#E8E4DA', '#C9C3B6'], sleeve: '#141414', inlay: '#BFC4C9', ring: '#BFC4C9' },
+  // Big Dom: Memphis midnight navy forearm, Beale Street blue points on gold veneers, blue/navy wrap, gold rings
+  bigdom: { name: 'Big Dom', shaft: ['#EEDDB4', '#DCC08A'], collar: '#F5B112', forearm: '#12173F', points: true, point: '#5D76A9', veneer: '#F5B112', wrap: ['#12173F', '#5D76A9'], sleeve: '#12173F', inlay: '#F5B112', ring: '#F5B112' }
 };
 function cueSVG(sizeAttrs, c = CUES[PREFS.cue] || CUES.classic, chalkOpacity = 1) {
   const st = [[0, 5], [4, 5], [14, 5.1], [140, 5.6], [290, 8.4], [302, 8.7], [420, 10.6], [520, 11.6], [572, 12.4], [580, 12.2]];
