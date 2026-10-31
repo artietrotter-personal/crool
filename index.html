@@ -1,0 +1,1339 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Crool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  color-scheme: light;
+  --ground: #E9E2D3; --surface: #F6F1E7; --line: #CFC5B3; --text: #1E1A16; --muted: #574E43;
+  --brass: #A87314; --brass-ink: #FFFFFF; --stripe: #E07A12; --solid: #2F6FD6; --danger: #B3261E;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --ground: #14110F; --surface: #221D19; --line: #3A322B; --text: #F3EEE3; --muted: #B8B0A2;
+    --brass: #E0AE4A; --brass-ink: #14110F; --stripe: #F28C28; --solid: #4A86E8; --danger: #FF8A8E;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ground: #14110F; --surface: #221D19; --line: #3A322B; --text: #F3EEE3; --muted: #B8B0A2;
+  --brass: #E0AE4A; --brass-ink: #14110F; --stripe: #F28C28; --solid: #4A86E8; --danger: #FF8A8E;
+}
+*, *::before, *::after { box-sizing: inherit; }
+html { height: 100%; scroll-padding-top: env(safe-area-inset-top, 0px); }
+body { margin: 0; height: 100%; background: var(--ground); color: var(--text); font-family: Inter, system-ui, -apple-system, sans-serif; overflow: hidden; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+button { font: inherit; color: inherit; }
+button:focus-visible { outline: 3px solid var(--brass); outline-offset: 2px; }
+
+.app { height: 100%; display: flex; flex-direction: column; max-width: 560px; margin: 0 auto; padding: 8px 12px 10px; gap: 8px; }
+
+.bar { display: grid; grid-template-columns: 1fr auto 1fr; gap: 6px; align-items: stretch; }
+.bar { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
+.team { border-radius: 14px; background: var(--surface); border: 2px solid var(--line); padding: 6px 8px; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 6px; min-height: 58px; }
+.team .row2 { display: flex; align-items: center; gap: 6px; margin-top: 2px; }
+.team .who { min-width: 0; }
+.team .name span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hamslot { width: 22px; height: 22px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.hamslot svg { visibility: hidden; }
+.hamslot.on svg { visibility: visible; }
+.team.active.stripe { border-color: var(--stripe); }
+.team.active.solid { border-color: var(--solid); }
+.team .name { font-family: Oswald, sans-serif; font-weight: 600; font-size: 15px; letter-spacing: 0; display: flex; align-items: center; gap: 5px; min-width: 0; }
+.team .sub { font-size: 12px; color: var(--muted); }
+.team .pts { font-family: Oswald, sans-serif; font-weight: 700; font-size: 26px; line-height: 1; }
+.dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+.dot.stripe { background: linear-gradient(to bottom, #FBF8F1 0 30%, var(--stripe) 30% 70%, #FBF8F1 70%); box-shadow: inset 0 0 0 1px rgba(0,0,0,.2); }
+.dot.solid { background: var(--solid); }
+.hammer { font-family: Inter, sans-serif; font-size: 10px; font-weight: 600; background: var(--brass); color: var(--brass-ink); border-radius: 9px; padding: 2px 6px; }
+.mid { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+.endpill { font-family: Oswald, sans-serif; font-size: 13px; letter-spacing: .5px; white-space: nowrap; }
+.iconbtn { width: 44px; height: 44px; border-radius: 22px; border: 1px solid var(--line); background: var(--surface); display: flex; align-items: center; justify-content: center; cursor: pointer; }
+
+.adslot { border: 2px dashed var(--muted); border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: var(--muted); font-size: 14px; font-weight: 600; text-align: center; }
+.adslot small { font-weight: 400; font-size: 11px; }
+.adbanner { width: 320px; max-width: 100%; height: 50px; margin: 0 auto; flex-shrink: 0; }
+.overlay.interstitial { flex-direction: column; justify-content: center; align-items: stretch; background: var(--ground); gap: 10px; padding-top: calc(12px + env(safe-area-inset-top, 0px)); z-index: 40; }
+.interstitial .adfull { flex: 1; min-height: 0; }
+.adbar { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--muted); }
+.chalkbtn { position: absolute; width: 44px; height: 44px; border: 0; padding: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 2; }
+.chalkbtn[hidden] { display: none; }
+.stage { flex: 1; min-height: 0; display: flex; gap: 6px; }
+.tablewrap { flex: 1; min-width: 0; position: relative; }
+#table { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; display: block; }
+.lane { width: 56px; flex-shrink: 0; position: relative; border-radius: 18px; background: var(--surface); border: 1px solid var(--line); touch-action: none; overflow: hidden; cursor: grab; }
+.lane.off { opacity: .45; cursor: default; }
+.lane:focus-visible { outline: 3px solid var(--brass); outline-offset: 2px; }
+.lane .pct { position: absolute; top: 8px; left: 0; right: 0; text-align: center; font-family: Oswald, sans-serif; font-weight: 700; font-size: 19px; }
+.lane .plbl { position: absolute; top: 33px; left: 0; right: 0; text-align: center; font-size: 11px; color: var(--muted); }
+.lane .chalkmeter { position: absolute; top: 54px; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.lane .chalkmeter[hidden] { display: none; }
+.lane .blocks { display: flex; gap: 2px; }
+.lane .blocks i { width: 8px; height: 13px; border-radius: 2px; background: #6E97CC; box-shadow: inset 0 -2px 0 #2C5487; }
+.lane .blocks i.gone { background: var(--line); box-shadow: none; }
+.lane .chalkmeter.low .blocks i:not(.gone), .lane .chalkmeter.low .clbl { animation: lowchalk 1s ease-in-out infinite; }
+.lane .chalkmeter.low .clbl { color: var(--danger); font-weight: 700; }
+.lane .clbl { font-size: 11px; color: var(--muted); }
+@keyframes lowchalk { 50% { opacity: .35; } }
+.chalkbtn.low { animation: cubepulse 1s ease-in-out infinite; }
+@keyframes cubepulse { 50% { transform: scale(1.25); } }
+.lane .track { position: absolute; left: 50%; top: 96px; bottom: 14px; width: 6px; margin-left: -3px; border-radius: 3px; background: var(--line); }
+.lane .fill { position: absolute; left: 50%; top: 96px; width: 6px; margin-left: -3px; border-radius: 3px; background: var(--brass); height: 0; }
+.lane .stick { position: absolute; left: 50%; top: 100px; width: 22px; margin-left: -11px; height: 76%; filter: drop-shadow(2px 3px 1.5px rgba(0,0,0,.4)); will-change: transform; }
+.lane .stick svg { display: block; width: 100%; height: 100%; }
+
+.foot { height: 100px; flex-shrink: 0; display: flex; flex-direction: column; gap: 6px; align-items: stretch; overflow: hidden; }
+.hint[hidden] { display: none; }
+.msg { font-size: 14px; line-height: 1.35; text-align: center; min-height: 19px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.hint { font-size: 12.5px; color: var(--muted); text-align: center; }
+.btn { height: 50px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); font-family: Oswald, sans-serif; font-weight: 600; font-size: 18px; letter-spacing: .5px; cursor: pointer; padding: 0 18px; }
+.btn.primary { background: var(--brass); color: var(--brass-ink); border-color: var(--brass); }
+.btn[hidden] { display: none; }
+
+.overlay { position: fixed; inset: 0; z-index: 20; display: flex; align-items: flex-end; justify-content: center; background: rgba(10, 8, 7, .55); padding: 12px 12px calc(12px + env(safe-area-inset-bottom, 0px)); }
+.overlay.full { align-items: center; background: var(--ground); }
+.overlay[hidden] { display: none; }
+.sheet { width: 100%; max-width: 520px; background: var(--surface); border: 1px solid var(--line); border-radius: 22px; padding: 18px; display: flex; flex-direction: column; gap: 12px; max-height: calc(100% - 20px); overflow-y: auto; }
+.overlay.full .sheet { background: transparent; border: 0; }
+.sheet h2 { margin: 0; font-family: Oswald, sans-serif; font-weight: 700; font-size: 28px; letter-spacing: .5px; }
+.sheet p { margin: 0; font-size: 15px; line-height: 1.45; }
+.wordmark { font-family: Oswald, sans-serif; font-weight: 700; font-size: 72px; letter-spacing: 10px; line-height: 1; text-align: center; margin: 0; }
+.tag { text-align: center; color: var(--muted); font-size: 16px; margin: 0; }
+.stack { display: flex; flex-direction: column; gap: 10px; }
+.settings { border: 1px solid var(--line); border-radius: 16px; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+.settings .lbl { font-size: 14px; font-weight: 600; }
+.seg { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 6px; }
+.seg button { height: 44px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); cursor: pointer; font-family: Oswald, sans-serif; font-size: 16px; }
+.seg button[aria-pressed="true"] { background: var(--brass); color: var(--brass-ink); border-color: var(--brass); font-weight: 600; }
+.settings[hidden] { display: none; }
+.seg.two { grid-auto-flow: row; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.swatches { display: flex; flex-wrap: wrap; gap: 8px; }
+.swatch { width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--line); cursor: pointer; padding: 0; position: relative; }
+.swatch[aria-pressed="true"] { border-color: var(--text); box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--brass); }
+.swatch:disabled { opacity: .25; cursor: not-allowed; }
+.swatch.ball { background-clip: padding-box; }
+#cuePreview { width: 100%; height: 40px; display: block; }
+.sheet > * { flex-shrink: 0; }
+.bigresult { font-family: Oswald, sans-serif; font-weight: 700; font-size: 64px !important; line-height: 1; letter-spacing: 1px; margin: 4px 0 0; }
+.bigresult.lose { color: var(--muted); }
+.overball { width: 96px; height: 96px; border-radius: 50%; box-shadow: inset -10px -12px 0 rgba(0,0,0,.18), 0 6px 0 rgba(0,0,0,.25); }
+.overball.solid { background: var(--solid); }
+.overball.stripe { background: linear-gradient(to bottom, #FBF8F1 0 28%, var(--stripe) 28% 72%, #FBF8F1 72%); }
+.settings .note { font-size: 13px; color: var(--muted); margin: 0; }
+.rules { margin: 0; padding: 0 0 0 20px; display: flex; flex-direction: column; gap: 8px; font-size: 14px; line-height: 1.45; }
+.rules strong { font-family: Oswald, sans-serif; font-weight: 600; letter-spacing: .3px; font-size: 15px; }
+.linescore[hidden] { display: none; }
+.linescore { display: flex; gap: 2px; overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; padding: 8px; }
+.linescore .col { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 26px; }
+.linescore .col.lbl { align-items: flex-start; min-width: 54px; }
+.linescore span { height: 22px; display: flex; align-items: center; font-family: Oswald, sans-serif; font-size: 15px; }
+.linescore .hd { font-family: Inter, sans-serif; font-size: 11px; color: var(--muted); }
+.logo { display: flex; justify-content: center; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="bar" aria-label="Score">
+    <div class="team stripe" id="chip-stripe">
+      <div class="who"><div class="name"><span class="dot stripe"></span><span id="name-stripe">Stripes</span></div><div class="row2"><div class="sub" id="left-stripe">7 left</div><div class="hamslot" id="ham-stripe" title="Hammer"><svg width="22" height="22" viewBox="0 0 24 24" role="img" aria-label="Has the hammer"><circle cx="12" cy="12" r="11" fill="var(--brass)"></circle><g fill="none" stroke="var(--brass-ink)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="5.5" width="9" height="5" rx="1" transform="rotate(-40 10.5 8)"></rect><line x1="12" y1="10.5" x2="17.5" y2="17.5"></line></g></svg></div></div></div>
+      <div class="pts" id="pts-stripe">0</div>
+    </div>
+    <div class="mid">
+      <button class="iconbtn" id="menuBtn" aria-label="Pause menu"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><line x1="8" y1="5" x2="8" y2="19"></line><line x1="16" y1="5" x2="16" y2="19"></line></svg></button>
+      <div class="endpill" id="endPill">Lag</div>
+    </div>
+    <div class="team solid" id="chip-solid">
+      <div class="who"><div class="name"><span class="dot solid"></span><span id="name-solid">Solids</span></div><div class="row2"><div class="sub" id="left-solid">7 left</div><div class="hamslot" id="ham-solid" title="Hammer"><svg width="22" height="22" viewBox="0 0 24 24" role="img" aria-label="Has the hammer"><circle cx="12" cy="12" r="11" fill="var(--brass)"></circle><g fill="none" stroke="var(--brass-ink)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="5.5" width="9" height="5" rx="1" transform="rotate(-40 10.5 8)"></rect><line x1="12" y1="10.5" x2="17.5" y2="17.5"></line></g></svg></div></div></div>
+      <div class="pts" id="pts-solid">0</div>
+    </div>
+  </header>
+  <div class="stage" id="stage">
+    <div class="tablewrap" id="tablewrap"><canvas id="table" role="img" aria-label="Pool table"></canvas>
+      <button class="chalkbtn" id="chalkBtn" aria-label="Chalk the cue" hidden><svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><path d="M4 9 L13 4 L22 9 L13 14 Z" fill="#6E97CC"/><path d="M4 9 L13 14 L13 23 L4 18 Z" fill="#3D6FA8"/><path d="M22 9 L13 14 L13 23 L22 18 Z" fill="#2C5487"/><ellipse cx="13" cy="9" rx="3.4" ry="1.9" fill="#24466F"/></svg></button></div>
+    <div class="lane off" id="lane" role="slider" tabindex="0" aria-label="Shot power. Pull down, then let go to shoot." aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+      <div class="pct" id="lanePct">0%</div><div class="plbl">Power</div>
+      <div class="chalkmeter" id="chalkMeter" aria-hidden="true"><div class="blocks"><i></i><i></i><i></i><i></i><i></i></div><div class="clbl" id="chalkLbl">Chalk</div></div>
+      <div class="track"></div><div class="fill" id="laneFill"></div><div class="stick" id="laneStick"></div>
+    </div>
+  </div>
+  <footer class="foot">
+    <div class="msg" id="msg" aria-live="polite"></div>
+    <button class="btn primary" id="actionBtn" hidden>Confirm</button>
+    <div class="hint" id="hint"></div>
+  </footer>
+</div>
+
+<div class="overlay full" id="home">
+  <div class="sheet">
+    <div class="logo"><svg width="180" height="180" viewBox="0 0 260 260" aria-hidden="true"><circle cx="130" cy="130" r="128" fill="#1C5E46"></circle><circle cx="130" cy="130" r="100" fill="none" stroke="#F3EEE3" stroke-opacity=".22" stroke-width="2"></circle><circle cx="130" cy="130" r="68" fill="none" stroke="#F3EEE3" stroke-opacity=".28" stroke-width="2"></circle><circle cx="130" cy="130" r="36" fill="none" stroke="#E0AE4A" stroke-opacity=".8" stroke-width="2.5"></circle><circle cx="130" cy="130" r="20" fill="#FBF8F1"></circle><g transform="translate(78,178)"><circle r="18" fill="#FBF8F1"></circle><rect x="-18" y="-8" width="36" height="16" fill="#F28C28"></rect></g><circle cx="190" cy="92" r="18" fill="#4A86E8"></circle></svg></div>
+    <h1 class="wordmark">CROOL</h1>
+    <p class="tag">Curling strategy. Pool-table physics.</p>
+    <div class="stack">
+      <button class="btn primary" id="btnPass">Pass &amp; play</button>
+      <button class="btn" id="btnCpu">Play the computer</button>
+      <button class="btn" id="btnRules1">How to play</button>
+      <button class="btn" id="btnSettings">Settings</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay interstitial" id="adFull" hidden role="dialog" aria-label="Advertisement">
+  <div class="adbar"><span>Advertisement</span><button class="btn" id="adClose" disabled style="height: 44px; font-size: 15px">Close in 5</button></div>
+  <div class="adslot adfull">Place ad here<small>Full-screen interstitial</small></div>
+</div>
+
+<div class="overlay full" id="setup" hidden>
+  <div class="sheet">
+    <h2 id="setupTitle">Pass &amp; play</h2>
+    <div class="settings" role="group" aria-label="Match length">
+      <div class="lbl" id="fmtLabel">Match length</div>
+      <div class="seg" id="fmtType"><button type="button" data-type="ends" aria-pressed="true">Ends</button><button type="button" data-type="points" aria-pressed="false">Points</button></div>
+      <div class="seg" id="fmtValue"></div>
+      <p class="note" id="fmtNote"></p>
+    </div>
+    <div class="settings" role="group" aria-labelledby="lvlLabel" id="lvlGroup">
+      <div class="lbl" id="lvlLabel">Computer level</div>
+      <div class="seg" id="lvl"><button type="button" data-level="easy" aria-pressed="false">Banger</button><button type="button" data-level="medium" aria-pressed="true">League</button><button type="button" data-level="hard" aria-pressed="false">Shark</button></div>
+      <p class="note" id="lvlNote"></p>
+    </div>
+    <div class="stack">
+      <button class="btn primary" id="btnStart">Start match</button>
+      <button class="btn" id="btnBack">Back</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay full" id="prefs" hidden>
+  <div class="sheet">
+    <h2>Settings</h2>
+    <div class="settings" role="group" aria-labelledby="pTheme"><div class="lbl" id="pTheme">Appearance</div><div class="seg" id="optTheme"></div></div>
+    <div class="settings" role="group" aria-labelledby="pFelt"><div class="lbl" id="pFelt">Table cloth</div><div class="swatches" id="optFelt"></div><p class="note" id="noteFelt"></p></div>
+    <div class="settings" role="group" aria-labelledby="pRail"><div class="lbl" id="pRail">Rail finish</div><div class="swatches" id="optRail"></div><p class="note" id="noteRail"></p></div>
+    <div class="settings" role="group" aria-labelledby="pCue"><div class="lbl" id="pCue">Cue</div><div class="seg two" id="optCue"></div><canvas id="cuePreview" width="600" height="40" aria-hidden="true"></canvas></div>
+    <div class="settings" role="group" aria-labelledby="pChalk"><div class="lbl" id="pChalk">Chalk rule</div><div class="seg" id="optChalk"></div><p class="note" id="noteChalk"></p></div>
+    <div class="settings" role="group" aria-labelledby="pStripe"><div class="lbl" id="pStripe">Stripes color</div><div class="swatches" id="optStripe"></div></div>
+    <div class="settings" role="group" aria-labelledby="pSolid"><div class="lbl" id="pSolid">Solids color</div><div class="swatches" id="optSolid"></div><p class="note">A color one team is using can’t be picked for the other.</p></div>
+    <button class="btn primary" id="btnPrefsDone">Done</button>
+  </div>
+</div>
+
+<div class="overlay full" id="over" hidden>
+  <div class="sheet" style="align-items: center; text-align: center">
+    <div class="overball" id="overBall" aria-hidden="true"></div>
+    <h2 class="bigresult" id="overTitle"></h2>
+    <p id="overBody"></p>
+    <div class="linescore" id="overLine" style="align-self: stretch"></div>
+    <div class="stack" style="align-self: stretch">
+      <button class="btn primary" id="btnRematch">Rematch</button>
+      <button class="btn" id="btnOverHome">Home</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="rules" hidden>
+  <div class="sheet">
+    <h2>How to play</h2>
+    <ol class="rules">
+      <li><strong>The match.</strong> Stripes vs Solids, either over a set number of ends or racing to a points total. Pick the length on the match setup screen before you start. A tie goes to sudden death.</li>
+      <li><strong>The lag.</strong> Each team shoots toward the far rail. The ball that stops closest to the far rail takes the hammer for End 1. A pocketed lag ball loses.</li>
+      <li><strong>Each end.</strong> The cue starts on the foot spot, the 8-ball at center. Teams alternate seven shots each; the hammer shoots last.</li>
+      <li><strong>Shooting.</strong> Drag your ball anywhere fully behind the kitchen line. Drag above the kitchen to aim. Pull the power stick beside the table down to set power and let go to shoot; slide it back to the top before letting go to cancel.</li>
+      <li><strong>Kitchen line.</strong> After a shot, your team’s balls on or across the line are removed. Opponent balls go to the center spot, behind any ball already there.</li>
+      <li><strong>Cue contact.</strong> If your struck ball touches the cue, it is removed and your opponent places the cue anywhere. Knocking other balls into the cue is legal.</li>
+      <li><strong>Cue pocketed or on the line.</strong> The end stops. Opponent gets 2 points and the hammer. A match never ends this way; another end is played.</li>
+      <li><strong>The 8-ball.</strong> Pocketed or on the line, the shooting team places it anywhere.</li>
+      <li><strong>Chalk</strong> (can be turned off in Settings). Each shot wears the chalk off your tip; the chalk meter on the power stick shows what’s left. Tap the chalk cube on the rail to chalk up. Shoot with a bare tip and you risk a miscue.</li>
+      <li><strong>Scoring.</strong> The closest team scores a point for each ball nearer the cue than the opponent’s nearest. 8-ball closest or a tie: no points, hammer switches. Scoring team shoots first next end.</li>
+    </ol>
+    <button class="btn primary" id="btnRulesClose">Got it</button>
+  </div>
+</div>
+
+<div class="overlay" id="pause" hidden>
+  <div class="sheet">
+    <h2>Paused</h2>
+    <div class="stack">
+      <button class="btn primary" id="btnResume">Resume</button>
+      <button class="btn" id="btnRules2">How to play</button>
+      <button class="btn" id="btnQuit">Quit to home</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="result" hidden style="background: rgba(10,8,7,.25)">
+  <div class="sheet">
+    <h2 id="resTitle"></h2>
+    <p id="resBody"></p>
+    <div class="linescore" id="lineScore"></div>
+    <button class="btn primary" id="resBtn">Next end</button>
+  </div>
+</div>
+
+<script>
+// ===== Crool engine: units are inches, table 50 wide (x) by 100 long (y) =====
+// y = 0 is the far (foot) rail, y = 100 is the near (head) rail. Kitchen is y > 75.
+const W = 50, L = 100, R = 1.125, KITCHEN = 75;
+const FOOT_SPOT = { x: 25, y: 25 }, CENTER = { x: 25, y: 50 };
+const CORNER_JAW = 4.5 / Math.SQRT2;   // 4.5" corner mouth across a 45 degree opening
+const SIDE_HALF = 2.5;                  // 5" side mouth
+const CUSH = 2;                        // cushion depth from nose to rail
+const JAW_BACK = CORNER_JAW - CUSH / Math.tan(38 * Math.PI / 180); // where a 142-degree facing meets the rail
+const SIDE_NARROW = 0.5;
+const DECEL = 6;                        // rolling friction, in/s^2
+const CUSHION_E = 0.72, BALL_E = 0.95;
+const VMAX = 68;                        // in/s at full power
+const DT = 1 / 300;
+
+// Cushion segments (ball centre bounces at distance R)
+const SEGS = [
+  [CORNER_JAW, 0, W - CORNER_JAW, 0],
+  [CORNER_JAW, L, W - CORNER_JAW, L],
+  [0, CORNER_JAW, 0, L / 2 - SIDE_HALF], [0, L / 2 + SIDE_HALF, 0, L - CORNER_JAW],
+  [W, CORNER_JAW, W, L / 2 - SIDE_HALF], [W, L / 2 + SIDE_HALF, W, L - CORNER_JAW],
+  // corner jaws: 142-degree facings running from the cushion nose back to the rail (CUSH deep)
+  [CORNER_JAW, 0, JAW_BACK, -CUSH], [0, CORNER_JAW, -CUSH, JAW_BACK],
+  [W - CORNER_JAW, 0, W - JAW_BACK, -CUSH], [W, CORNER_JAW, W + CUSH, JAW_BACK],
+  [CORNER_JAW, L, JAW_BACK, L + CUSH], [0, L - CORNER_JAW, -CUSH, L - JAW_BACK],
+  [W - CORNER_JAW, L, W - JAW_BACK, L + CUSH], [W, L - CORNER_JAW, W + CUSH, L - JAW_BACK],
+  // side jaws: near-straight 104-degree facings
+  [0, L / 2 - SIDE_HALF, -CUSH, L / 2 - SIDE_HALF + SIDE_NARROW], [0, L / 2 + SIDE_HALF, -CUSH, L / 2 + SIDE_HALF - SIDE_NARROW],
+  [W, L / 2 - SIDE_HALF, W + CUSH, L / 2 - SIDE_HALF + SIDE_NARROW], [W, L / 2 + SIDE_HALF, W + CUSH, L / 2 + SIDE_HALF - SIDE_NARROW]
+];
+const POCKETS = [
+  { x: -1.4, y: -1.4, r: 2.3, hole: 3.0 }, { x: W + 1.4, y: -1.4, r: 2.3, hole: 3.0 },
+  { x: -1.4, y: L + 1.4, r: 2.3, hole: 3.0 }, { x: W + 1.4, y: L + 1.4, r: 2.3, hole: 3.0 },
+  { x: -1.9, y: L / 2, r: 2.2, hole: 2.3, dx: -0.5 }, { x: W + 1.9, y: L / 2, r: 2.2, hole: 2.3, dx: 0.5 }
+];
+
+function cloneBalls(balls) { return balls.map(b => ({ ...b })); }
+
+function closestOnSeg(px, py, s) {
+  const [x1, y1, x2, y2] = s, dx = x2 - x1, dy = y2 - y1;
+  let t = ((px - x1) * dx + (py - y1) * dy) / (dx * dx + dy * dy);
+  t = Math.max(0, Math.min(1, t));
+  return [x1 + t * dx, y1 + t * dy];
+}
+
+function outOfBounds(b) { return b.x < -4 || b.x > W + 4 || b.y < -4 || b.y > L + 4; }
+
+// Advance one physics step. events collects {type:'hit', a, b} and {type:'pocket', id} and {type:'rail', id}.
+function step(balls, events) {
+  for (const b of balls) {
+    if (!b.on || (b.vx === 0 && b.vy === 0)) continue;
+    const sp = Math.hypot(b.vx, b.vy), dv = DECEL * DT;
+    if (sp <= dv) { b.vx = 0; b.vy = 0; continue; }
+    const f = (sp - dv) / sp; b.vx *= f; b.vy *= f;
+    b.x += b.vx * DT; b.y += b.vy * DT;
+  }
+  // cushions
+  for (const b of balls) {
+    if (!b.on) continue;
+    for (const s of SEGS) {
+      const [cx, cy] = closestOnSeg(b.x, b.y, s);
+      let nx = b.x - cx, ny = b.y - cy; const d = Math.hypot(nx, ny);
+      if (d < R && d > 1e-9) {
+        nx /= d; ny /= d;
+        const vn = b.vx * nx + b.vy * ny;
+        b.x += nx * (R - d); b.y += ny * (R - d);
+        if (vn < 0) {
+          b.vx -= (1 + CUSHION_E) * vn * nx; b.vy -= (1 + CUSHION_E) * vn * ny;
+          if (events) events.push({ type: 'rail', id: b.id, y: cy });
+        }
+      }
+    }
+  }
+  // balls
+  for (let i = 0; i < balls.length; i++) {
+    const a = balls[i]; if (!a.on) continue;
+    for (let j = i + 1; j < balls.length; j++) {
+      const b = balls[j]; if (!b.on) continue;
+      let nx = b.x - a.x, ny = b.y - a.y; const d = Math.hypot(nx, ny);
+      if (d < 2 * R && d > 1e-9) {
+        nx /= d; ny /= d;
+        const ov = (2 * R - d) / 2;
+        a.x -= nx * ov; a.y -= ny * ov; b.x += nx * ov; b.y += ny * ov;
+        const rv = (a.vx - b.vx) * nx + (a.vy - b.vy) * ny;
+        if (rv > 0) {
+          const jimp = (1 + BALL_E) / 2 * rv;
+          a.vx -= jimp * nx; a.vy -= jimp * ny; b.vx += jimp * nx; b.vy += jimp * ny;
+          if (events) events.push({ type: 'hit', a: a.id, b: b.id });
+        }
+      }
+    }
+  }
+  // pockets
+  for (const b of balls) {
+    if (!b.on) continue;
+    let pocketed = outOfBounds(b);
+    for (const p of POCKETS) if (Math.hypot(b.x - p.x, b.y - p.y) < p.r) pocketed = true;
+    // past the rail line inside a pocket mouth
+    if ((b.x < -0.2 || b.x > W + 0.2) && Math.abs(b.y - L / 2) < SIDE_HALF) pocketed = true;
+    if (pocketed) { b.on = false; b.vx = 0; b.vy = 0; b.pocketed = true; if (events) events.push({ type: 'pocket', id: b.id }); }
+  }
+}
+
+function moving(balls) { return balls.some(b => b.on && (b.vx !== 0 || b.vy !== 0)); }
+
+// Simulate a full shot to rest; returns the events.
+function simulate(balls, maxSteps = 9000) {
+  const events = [];
+  let n = 0;
+  while (moving(balls) && n < maxSteps) { step(balls, events); n++; }
+  if (n >= maxSteps) for (const b of balls) { b.vx = 0; b.vy = 0; }
+  return events;
+}
+
+// ===== Rules helpers =====
+const other = t => (t === 'stripe' ? 'solid' : 'stripe');
+const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+const touchesKitchen = b => b.y + R >= KITCHEN;
+
+function validSpot(balls, x, y, ignoreId, opts = {}) {
+  if (x < R + 0.05 || x > W - R - 0.05 || y < R + 0.05 || y > L - R - 0.05) return false;
+  if (opts.kitchen) { if (y - R <= KITCHEN) return false; }
+  else if (y + R >= KITCHEN - 0.05) return false;
+  for (const p of POCKETS) if (Math.hypot(x - p.x, y - p.y) < p.r + R + 0.6) return false;
+  for (const b of balls) if (b.on && b.id !== ignoreId && Math.hypot(b.x - x, b.y - y) < 2 * R + 0.02) return false;
+  return true;
+}
+
+// Put a ball on the centre spot, or directly behind whatever is there, toward the far rail.
+function placeAtCenter(balls, ball) {
+  let y = CENTER.y;
+  while (y > R + 0.1) {
+    if (balls.every(o => !o.on || o.id === ball.id || Math.hypot(o.x - CENTER.x, o.y - y) >= 2 * R + 0.01)) break;
+    y -= 2 * R + 0.01;
+  }
+  ball.x = CENTER.x; ball.y = y; ball.on = true; ball.vx = 0; ball.vy = 0; ball.pocketed = false;
+}
+
+// Score the current layout. Returns {kind:'score'|'eight'|'push'|'empty', team, points, ring, scorers}
+function scoreLayout(balls) {
+  const cue = balls.find(b => b.id === 'cue');
+  const live = balls.filter(b => b.on && (b.team === 'stripe' || b.team === 'solid'));
+  if (!cue || !cue.on || !live.length) return { kind: 'empty', points: 0 };
+  const near = t => Math.min(...live.filter(b => b.team === t).map(b => dist(b, cue)), Infinity);
+  const ns = near('stripe'), nd = near('solid');
+  const eight = balls.find(b => b.id === 'eight');
+  const ne = eight && eight.on ? dist(eight, cue) : Infinity;
+  const best = Math.min(ns, nd);
+  if (ne < best) return { kind: 'eight', points: 0, ring: ne };
+  if (Math.abs(ns - nd) < 0.01) return { kind: 'push', points: 0, ring: ns };
+  const team = ns < nd ? 'stripe' : 'solid';
+  const ring = team === 'stripe' ? nd : ns;
+  const scorers = live.filter(b => b.team === team && dist(b, cue) < ring).sort((a, b) => dist(a, cue) - dist(b, cue));
+  return { kind: 'score', team, points: scorers.length, ring, scorers: scorers.map(b => b.id) };
+}
+
+// Apply post-shot rules to a resting layout. Returns outcome flags and pending placements.
+function resolveShot(balls, events, shooterTeam, struckId) {
+  const out = { cueEnd: false, foulCue: false, pendings: [], removed: [], centered: [] };
+  const cue = balls.find(b => b.id === 'cue');
+  const eight = balls.find(b => b.id === 'eight');
+  out.foulCue = events.some(e => e.type === 'hit' && ((e.a === struckId && e.b === 'cue') || (e.b === struckId && e.a === 'cue')));
+  if (!cue.on || touchesKitchen(cue)) { out.cueEnd = true; return out; }
+  if (out.foulCue) {
+    const s = balls.find(b => b.id === struckId);
+    if (s.on) { s.on = false; out.removed.push(s.id); }
+    out.pendings.push({ id: 'cue', by: other(shooterTeam) });
+  }
+  for (const b of balls) {
+    if (!b.on || !(b.team === 'stripe' || b.team === 'solid')) continue;
+    if (!touchesKitchen(b)) continue;
+    if (b.team === shooterTeam) { b.on = false; out.removed.push(b.id); }
+    else { b.on = false; out.centered.push(b); }
+  }
+  for (const b of out.centered) placeAtCenter(balls, b);
+  out.centered = out.centered.map(b => b.id);
+  if (!eight.on || touchesKitchen(eight)) { eight.on = false; out.pendings.push({ id: 'eight', by: shooterTeam }); }
+  return out;
+}
+
+// ===== Aim helper: where the moving ball first touches a ball or cushion =====
+function firstContact(balls, p, dir, ignoreId) {
+  let x = p.x, y = p.y;
+  for (let i = 0; i < 1400; i++) {
+    x += dir.x * 0.1; y += dir.y * 0.1;
+    for (const b of balls) if (b.on && b.id !== ignoreId && Math.hypot(b.x - x, b.y - y) < 2 * R) return { x, y, kind: 'ball', id: b.id };
+    for (const s of SEGS) { const [cx, cy] = closestOnSeg(x, y, s); if (Math.hypot(x - cx, y - cy) < R) return { x, y, kind: 'rail' }; }
+    for (const pk of POCKETS) if (Math.hypot(x - pk.x, y - pk.y) < pk.r) return { x, y, kind: 'pocket' };
+    if (x < -2 || x > W + 2 || y < -2 || y > L + 2) return { x, y, kind: 'pocket' };
+  }
+  return { x, y, kind: 'none' };
+}
+
+// ===== Computer player =====
+// Value of a layout for `team`: positive is good. Uses the real scoring rule.
+function evaluate(balls, team) {
+  const s = scoreLayout(balls);
+  const cue = balls.find(b => b.id === 'cue');
+  let v = 0;
+  if (s.kind === 'score') v = (s.team === team ? 1 : -1) * s.points * 10;
+  // tie-breaker: own nearest ball closer, opponent's farther
+  if (cue && cue.on) {
+    const nearest = t => Math.min(40, ...balls.filter(b => b.on && b.team === t).map(b => dist(b, cue)));
+    v += (nearest(other(team)) - nearest(team)) * 0.15;
+  }
+  return v;
+}
+
+function bestPlacement(balls, id, team) {
+  const ball = balls.find(b => b.id === id);
+  let best = null, bestV = -Infinity;
+  for (let y = 3; y < KITCHEN - 2; y += 1.5) for (let x = 2; x <= W - 2; x += 1.5) {
+    if (!validSpot(balls, x, y, id)) continue;
+    const trial = cloneBalls(balls); const t = trial.find(b => b.id === id);
+    t.x = x; t.y = y; t.on = true;
+    const v = evaluate(trial, team) - Math.abs(y - 30) * 0.001;
+    if (v > bestV) { bestV = v; best = { x, y }; }
+  }
+  return best || { x: ball.x || 25, y: 40 };
+}
+
+// Speed needed to roll a straight distance d and stop.
+const speedFor = d => Math.sqrt(2 * DECEL * Math.max(0.5, d));
+
+function planShot(balls, team, shotBallId, rng = Math.random) {
+  const cue = balls.find(b => b.id === 'cue');
+  const targets = [];
+  targets.push({ x: cue.x, y: cue.y + 2.6, draw: true });
+  for (let k = 0; k < 6; k++) targets.push({ x: cue.x + (rng() - 0.5) * 7, y: cue.y + 1.5 + rng() * 6, draw: true });
+  for (const b of balls) if (b.on && b.team === other(team)) targets.push({ x: b.x, y: b.y, take: true });
+  for (const b of balls) if (b.on && b.team === team) targets.push({ x: b.x, y: b.y + 3 + rng() * 6, draw: true });
+  targets.push({ x: cue.x + (rng() - 0.5) * 4, y: cue.y + 14 + rng() * 10, draw: true }); // guard
+  let best = null, bestV = -Infinity;
+  for (const t of targets) {
+    for (const px of [t.x - 4, t.x, t.x + 4, 6 + rng() * 38]) {
+      const pxC = Math.max(R + 0.2, Math.min(W - R - 0.2, px)), py = 88 + (rng() - 0.5) * 8;
+      if (!validSpot(balls, pxC, py, shotBallId, { kitchen: true })) continue;
+      const dx = t.x - pxC, dy = t.y - py, d = Math.hypot(dx, dy);
+      const dir = { x: dx / d, y: dy / d };
+      const speeds = t.take ? [speedFor(d) * 1.5, speedFor(d) * 2.1, VMAX * 0.9] : [speedFor(d - 0.3), speedFor(d + 1.2)];
+      for (const v0 of speeds) {
+        const power = Math.min(1, v0 / VMAX);
+        const trial = cloneBalls(balls);
+        let sb = trial.find(b => b.id === shotBallId);
+        if (!sb) { sb = { id: shotBallId, team }; trial.push(sb); }
+        sb.x = pxC; sb.y = py; sb.on = true; sb.vx = dir.x * power * VMAX; sb.vy = dir.y * power * VMAX;
+        const ev = simulate(trial, 6000);
+        const res = resolveShot(trial, ev, team, shotBallId);
+        let v;
+        if (res.cueEnd) v = -40;
+        else { v = evaluate(trial, team); if (res.foulCue) v -= 15; }
+        if (v > bestV) { bestV = v; best = { x: pxC, y: py, dir, power }; }
+      }
+    }
+  }
+  if (!best) best = { x: 25, y: 88, dir: { x: 0, y: -1 }, power: 0.6 };
+  return best;
+}
+
+// ===== Controller =====
+const $ = id => document.getElementById(id);
+const canvas = $('table'), ctx = canvas.getContext('2d');
+const RAIL = 5.2, TIMESCALE = 1.8, MAX_PULL = 14;
+const S = {
+  mode: 'pass', phase: 'home', balls: [], scores: { stripe: 0, solid: 0 }, left: { stripe: 7, solid: 7 },
+  hammer: null, shooter: 'stripe', endNum: 1, forceExtra: false, log: [], counter: 0,
+  aim: { x: 25, y: 88 }, dir: { x: 0, y: -1 }, pull: 0, drag: null, placing: null, pend: [],
+  shot: null, events: [], lag: null, result: null, notes: []
+};
+let view = { k: 6, ox: 0, oy: 0, cw: 0, ch: 0 };
+
+const teamName = t => (S.mode === 'cpu' ? (t === 'stripe' ? 'You' : 'Computer') : (t === 'stripe' ? 'Stripes' : 'Solids'));
+const teamPoss = t => (S.mode === 'cpu' ? (t === 'stripe' ? 'Your' : 'The computer’s') : (t === 'stripe' ? 'Stripes’' : 'Solids’'));
+const isCpu = t => S.mode === 'cpu' && t === 'solid';
+const FORMATS = { ends: [4, 6, 8, 10], points: [7, 11, 15, 21] };
+S.format = { type: 'ends', value: 8 };
+function renderFormat() {
+  for (const b of $('fmtType').children) b.setAttribute('aria-pressed', String(b.dataset.type === S.format.type));
+  const box = $('fmtValue'); box.innerHTML = '';
+  for (const v of FORMATS[S.format.type]) {
+    const b = document.createElement('button'); b.type = 'button'; b.textContent = v;
+    b.setAttribute('aria-pressed', String(v === S.format.value));
+    b.setAttribute('aria-label', S.format.type === 'ends' ? `${v} ends` : `First to ${v} points`);
+    b.onclick = () => { S.format.value = v; renderFormat(); };
+    box.appendChild(b);
+  }
+  $('fmtNote').textContent = S.format.type === 'ends'
+    ? `Most points after ${S.format.value} ends wins.`
+    : `First team to ${S.format.value} or more points at the end of an end wins.`;
+}
+for (const b of document.querySelectorAll('#fmtType button')) b.onclick = () => {
+  S.format.type = b.dataset.type; S.format.value = b.dataset.type === 'ends' ? 8 : 11; renderFormat();
+};
+renderFormat();
+// Computer skill: full-range aim error (radians) and power error (fraction) on each shot
+const LEVELS = {
+  easy: { label: 'Banger', ang: 0.06, pow: 0.18, note: 'Bar-room regular. Swings hard, misjudges speed, and leaves you plenty.' },
+  medium: { label: 'League', ang: 0.022, pow: 0.08, note: 'Tuesday-night league player. Picks smart shots but leaves you openings.' },
+  hard: { label: 'Shark', ang: 0.008, pow: 0.03, note: 'Hustles for a living. Rarely misses. Expect takeouts and tight draws.' }
+};
+S.level = 'medium';
+function renderLevel() {
+  for (const b of $('lvl').children) b.setAttribute('aria-pressed', String(b.dataset.level === S.level));
+  $('lvlNote').textContent = LEVELS[S.level].note;
+}
+for (const b of document.querySelectorAll('#lvl button')) b.onclick = () => { S.level = b.dataset.level; renderLevel(); };
+renderLevel();
+const skill = () => LEVELS[S.level];
+const isEnds = () => S.format.type === 'ends';
+const lastEnd = () => S.format.value;
+let CSS = {};
+// ---------- player settings (saved on this device) ----------
+const FELTS = { green: { name: 'Tournament green', hex: '#1C5E46' }, blue: { name: 'Pro blue', hex: '#1E4E7A' }, burgundy: { name: 'Burgundy', hex: '#6B2A3A' }, charcoal: { name: 'Charcoal', hex: '#34393B' }, teal: { name: 'Teal', hex: '#1F6B6B' }, purple: { name: 'Plum', hex: '#4B3266' } };
+const RAILS = { walnut: { name: 'Walnut', hex: '#3A2416' }, oak: { name: 'Honey oak', hex: '#7A5230' }, black: { name: 'Black lacquer', hex: '#161412' }, gray: { name: 'Weathered gray', hex: '#5B5650' } };
+const BALLS = { orange: { name: 'Orange', hex: '#F28C28' }, yellow: { name: 'Yellow', hex: '#F2C230' }, red: { name: 'Red', hex: '#D9363E' }, maroon: { name: 'Maroon', hex: '#7A2232' }, green: { name: 'Green', hex: '#2E8B57' }, blue: { name: 'Blue', hex: '#4A86E8' }, purple: { name: 'Purple', hex: '#7B4FC4' } };
+const PREFS = { theme: 'system', felt: 'green', rail: 'walnut', cue: 'classic', stripe: 'orange', solid: 'blue', chalk: true };
+try { Object.assign(PREFS, JSON.parse(localStorage.getItem('crool-prefs') || '{}')); } catch (e) {}
+if (!['system', 'light', 'dark'].includes(PREFS.theme)) PREFS.theme = 'system';
+if (!FELTS[PREFS.felt]) PREFS.felt = 'green';
+if (!RAILS[PREFS.rail]) PREFS.rail = 'walnut';
+if (!['classic', 'sneaky', 'house', 'midnight'].includes(PREFS.cue)) PREFS.cue = 'classic';
+if (typeof PREFS.chalk !== 'boolean') PREFS.chalk = true;
+if (!BALLS[PREFS.stripe]) PREFS.stripe = 'orange';
+if (!BALLS[PREFS.solid] || PREFS.solid === PREFS.stripe) PREFS.solid = PREFS.stripe === 'blue' ? 'orange' : 'blue';
+function savePrefs() { try { localStorage.setItem('crool-prefs', JSON.stringify(PREFS)); } catch (e) {} }
+function applyPrefs() {
+  const root = document.documentElement;
+  if (PREFS.theme === 'system') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', PREFS.theme);
+  root.style.setProperty('--stripe', BALLS[PREFS.stripe].hex);
+  root.style.setProperty('--solid', BALLS[PREFS.solid].hex);
+  refreshColors(); buildCue();
+}
+function refreshColors() { const cs = getComputedStyle(document.documentElement); for (const v of ['--brass', '--stripe', '--solid', '--danger']) CSS[v] = cs.getPropertyValue(v).trim(); }
+function css(v) { return CSS[v]; }
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', refreshColors);
+
+// ---------- layout ----------
+function resize() {
+  const r = $('tablewrap').getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  canvas.width = Math.round(r.width * dpr); canvas.height = Math.round(r.height * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const k = Math.min(r.width / (W + 2 * RAIL), r.height / (L + 2 * RAIL));
+  view = { k, cw: r.width, ch: r.height, ox: (r.width - W * k) / 2, oy: (r.height - L * k) / 2 };
+  const cb = $('chalkBtn'); cb.style.left = (view.ox + 31.25 * k - 22) + 'px'; cb.style.top = (view.oy + (L + RAIL / 2) * k - 22) + 'px';
+}
+const tx = x => view.ox + x * view.k, ty = y => view.oy + y * view.k;
+function toTable(e) { const r = canvas.getBoundingClientRect(); return { x: (e.clientX - r.left - view.ox) / view.k, y: (e.clientY - r.top - view.oy) / view.k }; }
+
+// ---------- drawing ----------
+function drawBall(b, alpha = 1) {
+  const x = tx(b.x), y = ty(b.y), r = R * view.k;
+  ctx.save(); ctx.globalAlpha = alpha;
+  // light comes from a lamp over the table centre: shadow falls away from it, highlight faces it
+  const lx = (b.x - W / 2) / (L / 2), ly = (b.y - L / 2) / (L / 2);
+  ctx.fillStyle = 'rgba(0,0,0,.32)'; ctx.beginPath(); ctx.arc(x + r * (.1 + lx * .45), y + r * (.15 + ly * .45), r * 1.02, 0, 7); ctx.fill();
+  ctx.beginPath(); ctx.arc(x, y, r, 0, 7);
+  if (b.team === 'cue') { ctx.fillStyle = '#FBF8F1'; ctx.fill(); }
+  else if (b.team === 'eight') { ctx.fillStyle = '#121212'; ctx.fill(); ctx.fillStyle = '#F3EEE3'; ctx.beginPath(); ctx.arc(x, y, r * .45, 0, 7); ctx.fill(); }
+  else if (b.team === 'solid') { ctx.fillStyle = css('--solid') || '#4A86E8'; ctx.fill(); }
+  else { ctx.fillStyle = '#FBF8F1'; ctx.fill(); ctx.save(); ctx.clip(); ctx.fillStyle = css('--stripe') || '#F28C28'; ctx.fillRect(x - r, y - r * .45, 2 * r, r * .9); ctx.restore(); }
+  const hx = x - r * lx * .45, hy = y - r * ly * .45;
+  const sh = ctx.createRadialGradient(hx, hy, 0, hx, hy, r * 1.6);
+  sh.addColorStop(0, 'rgba(255,255,255,.18)'); sh.addColorStop(.55, 'rgba(0,0,0,0)'); sh.addColorStop(1, 'rgba(0,0,0,.35)');
+  ctx.save(); ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.clip(); ctx.fillStyle = sh; ctx.fillRect(x - r, y - r, 2 * r, 2 * r); ctx.restore();
+  ctx.fillStyle = 'rgba(255,250,235,.8)'; ctx.beginPath(); ctx.arc(hx, hy, r * .2, 0, 7); ctx.fill();
+  ctx.restore();
+}
+
+let _felt = null;
+function feltPattern() {
+  if (_felt) return _felt;
+  const c = document.createElement('canvas'); c.width = c.height = 96; const g = c.getContext('2d');
+  for (let i = 0; i < 1600; i++) {
+    g.fillStyle = Math.random() < .5 ? 'rgba(255,255,255,.045)' : 'rgba(0,0,0,.06)';
+    g.fillRect(Math.random() * 96, Math.random() * 96, 1, Math.random() < .3 ? 2 : 1);
+  }
+  return (_felt = ctx.createPattern(c, 'repeat'));
+}
+function shade(hex, f) {
+  const n = parseInt(hex.slice(1), 16), c = [n >> 16, (n >> 8) & 255, n & 255].map(v => Math.max(0, Math.min(255, Math.round(v * f))));
+  return '#' + c.map(v => v.toString(16).padStart(2, '0')).join('');
+}
+function poly(pts) { ctx.beginPath(); pts.forEach(([x, y], i) => (i ? ctx.lineTo(tx(x), ty(y)) : ctx.moveTo(tx(x), ty(y)))); ctx.closePath(); }
+// Cushions: cloth-covered rubber from the nose (playing edge) back to the rail, cut at each pocket by its jaws
+function cushionPolys() {
+  const C = CUSH, J = CORNER_JAW, B = JAW_BACK, s1 = L / 2 - SIDE_HALF, s2 = L / 2 + SIDE_HALF, n = SIDE_NARROW;
+  return [
+    [[J, 0], [W - J, 0], [W - B, -C], [B, -C]],
+    [[J, L], [W - J, L], [W - B, L + C], [B, L + C]],
+    [[0, J], [0, s1], [-C, s1 + n], [-C, B]],
+    [[0, s2], [0, L - J], [-C, L - B], [-C, s2 - n]],
+    [[W, J], [W, s1], [W + C, s1 + n], [W + C, B]],
+    [[W, s2], [W, L - J], [W + C, L - B], [W + C, s2 - n]]
+  ];
+}
+function drawTable() {
+  const k = view.k, felt = (FELTS[PREFS.felt] || FELTS.green).hex, wood = (RAILS[PREFS.rail] || RAILS.walnut).hex, C = CUSH;
+  ctx.clearRect(0, 0, view.cw, view.ch);
+  // wooden rails
+  ctx.fillStyle = wood;
+  roundRect(tx(-RAIL), ty(-RAIL), (W + 2 * RAIL) * k, (L + 2 * RAIL) * k, 1.6 * k); ctx.fill();
+  {
+    const g = ctx.createLinearGradient(tx(-RAIL), 0, tx(W + RAIL), 0);
+    g.addColorStop(0, 'rgba(0,0,0,.25)'); g.addColorStop(.5, 'rgba(255,220,160,.10)'); g.addColorStop(1, 'rgba(0,0,0,.25)');
+    ctx.fillStyle = g; roundRect(tx(-RAIL), ty(-RAIL), (W + 2 * RAIL) * k, (L + 2 * RAIL) * k, 1.6 * k); ctx.fill();
+  }
+  // cloth bed, including the pocket shelves between the jaws
+  ctx.fillStyle = felt; ctx.fillRect(tx(-C), ty(-C), (W + 2 * C) * k, (L + 2 * C) * k);
+  // cushions, with jaw facings angled into each pocket
+  const cushion = shade(felt, .86);
+  for (const pts of cushionPolys()) {
+    ctx.fillStyle = cushion; poly(pts); ctx.fill();
+    // outline the nose and both jaw facings (not the back edge, which sits against the rail)
+    ctx.strokeStyle = 'rgba(0,0,0,.4)'; ctx.lineWidth = Math.max(1, .12 * k); ctx.lineJoin = 'round';
+    ctx.beginPath(); ctx.moveTo(tx(pts[3][0]), ty(pts[3][1])); ctx.lineTo(tx(pts[0][0]), ty(pts[0][1]));
+    ctx.lineTo(tx(pts[1][0]), ty(pts[1][1])); ctx.lineTo(tx(pts[2][0]), ty(pts[2][1])); ctx.stroke();
+  }
+  // lit jaw facings funnelling into each pocket
+  ctx.strokeStyle = 'rgba(255,255,255,.18)'; ctx.lineWidth = Math.max(1, .18 * k);
+  for (const sg of SEGS.slice(6)) { ctx.beginPath(); ctx.moveTo(tx(sg[0]), ty(sg[1])); ctx.lineTo(tx(sg[2]), ty(sg[3])); ctx.stroke(); }
+  // pocket openings cut through the cushion ends: leather liner, then the drop
+  for (const p of POCKETS) {
+    const px = tx(p.x + (p.dx || 0)), py = ty(p.y);
+    ctx.fillStyle = '#2A1C12'; ctx.beginPath(); ctx.arc(px, py, (p.hole + .3) * k, 0, 7); ctx.fill();
+    const g = ctx.createRadialGradient(px, py, 0, px, py, p.hole * k);
+    g.addColorStop(0, '#000'); g.addColorStop(.75, '#070605'); g.addColorStop(1, '#1C1612');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(px, py, p.hole * k, 0, 7); ctx.fill();
+  }
+  // playing surface: nap and lamp light
+  ctx.save(); ctx.beginPath(); ctx.rect(tx(0), ty(0), W * k, L * k); ctx.clip();
+  ctx.fillStyle = feltPattern(); ctx.fillRect(tx(0), ty(0), W * k, L * k);
+  {
+    const cx = tx(W / 2), cy = ty(L / 2), g = ctx.createRadialGradient(cx, cy, 0, cx, cy, L * .62 * k);
+    g.addColorStop(0, 'rgba(255,228,170,.16)'); g.addColorStop(.45, 'rgba(255,228,170,.04)');
+    g.addColorStop(.75, 'rgba(0,0,0,.12)'); g.addColorStop(1, 'rgba(0,0,0,.38)');
+    ctx.fillStyle = g; ctx.fillRect(tx(0), ty(0), W * k, L * k);
+  }
+  // soft shadow the cushion noses throw onto the cloth
+  ctx.lineWidth = .5 * k; ctx.strokeStyle = 'rgba(0,0,0,.22)'; ctx.strokeRect(tx(0) + .25 * k, ty(0) + .25 * k, (W - .5) * k, (L - .5) * k);
+  ctx.restore();
+  // cushion nose highlight
+  ctx.strokeStyle = 'rgba(255,255,255,.10)'; ctx.lineWidth = 1;
+  for (const s of SEGS.slice(0, 6)) { ctx.beginPath(); ctx.moveTo(tx(s[0]), ty(s[1])); ctx.lineTo(tx(s[2]), ty(s[3])); ctx.stroke(); }
+  // diamond sights in the middle of the rail top
+  const mid = C + (RAIL - C) / 2;
+  ctx.fillStyle = 'rgba(232,220,196,.8)';
+  for (let i = 1; i < 8; i++) if (i !== 4) { dot(-mid, i * 12.5); dot(W + mid, i * 12.5); }
+  for (let i = 1; i < 4; i++) { dot(i * 12.5, -mid); dot(i * 12.5, L + mid); }
+  // kitchen
+  ctx.fillStyle = 'rgba(0,0,0,.16)'; ctx.fillRect(tx(0), ty(KITCHEN), W * k, (L - KITCHEN) * k);
+  ctx.setLineDash([5, 5]); ctx.strokeStyle = 'rgba(243,238,227,.5)'; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.moveTo(tx(0), ty(KITCHEN)); ctx.lineTo(tx(W), ty(KITCHEN)); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle = 'rgba(243,238,227,.7)'; ctx.font = `600 ${Math.max(10, 2 * k)}px Oswald, sans-serif`; ctx.textAlign = 'left';
+  ctx.fillText('Kitchen', tx(1.5), ty(L - 1.5));
+  // spots
+  ctx.fillStyle = 'rgba(243,238,227,.35)';
+  for (const p of [FOOT_SPOT, CENTER]) { ctx.beginPath(); ctx.arc(tx(p.x), ty(p.y), 0.3 * k, 0, 7); ctx.fill(); }
+  function dot(x, y) { ctx.beginPath(); ctx.arc(tx(x), ty(y), Math.max(1.4, 0.32 * k), 0, 7); ctx.fill(); }
+}
+function roundRect(x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+
+function drawHouse() {
+  const cue = S.balls.find(b => b.id === 'cue'); if (!cue || !cue.on) return;
+  const brass = css('--brass') || '#E0AE4A';
+  ctx.save(); ctx.beginPath(); ctx.rect(tx(0), ty(0), W * view.k, L * view.k); ctx.clip();
+  [[18, 'rgba(243,238,227,.12)'], [12, 'rgba(243,238,227,.16)'], [6, brass]].forEach(([r, c], i) => {
+    ctx.strokeStyle = c; ctx.globalAlpha = i === 2 ? .55 : 1; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.arc(tx(cue.x), ty(cue.y), r * view.k, 0, 7); ctx.stroke(); ctx.globalAlpha = 1;
+  });
+  ctx.restore();
+}
+
+// A 58" cue drawn in tenths of an inch: 13mm tip, ivory ferrule, pro-taper maple shaft,
+// steel joint, maple forearm with ebony points, linen wrap, ebony butt sleeve, rubber bumper.
+const CUES = {
+  classic: { name: 'Classic points', shaft: ['#EEDDB4', '#DCC08A'], collar: '#C9CCCF', forearm: '#D6B274', points: true, point: '#1F130D', veneer: '#ECE5D6', wrap: ['#191919', '#353535'], sleeve: '#24150E', inlay: '#EDE6D6', ring: '#C9CCCF' },
+  sneaky: { name: 'Sneaky Pete', shaft: ['#EEDDB4', '#DCC08A'], collar: '#24150E', forearm: '#2B1810', points: false, wrap: null, sleeve: '#2B1810', inlay: null, ring: '#8E7A5A' },
+  house: { name: 'House cue', shaft: ['#EAD3A2', '#D2AE6C'], collar: null, forearm: '#C99A5A', points: false, wrap: null, sleeve: '#6B3E1F', inlay: null, ring: '#1A1A1A' },
+  midnight: { name: 'Midnight', shaft: ['#F1E4C6', '#E2CC9C'], collar: '#BFC4C9', forearm: '#141414', points: true, point: '#BFC4C9', veneer: '#3A3A3A', wrap: ['#E8E4DA', '#C9C3B6'], sleeve: '#141414', inlay: '#BFC4C9', ring: '#BFC4C9' }
+};
+function cueSVG(sizeAttrs, c = CUES[PREFS.cue] || CUES.classic, chalkOpacity = 1) {
+  const st = [[0, 5], [4, 5], [14, 5.1], [140, 5.6], [290, 8.4], [302, 8.7], [420, 10.6], [520, 11.6], [572, 12.4], [580, 12.2]];
+  const L1 = st.map(([y, w]) => `${(7 - w / 2).toFixed(2)},${y}`).join(' ');
+  const R1 = st.slice().reverse().map(([y, w]) => `${(7 + w / 2).toFixed(2)},${y}`).join(' ');
+  const shape = `M4.5,1.4 Q7,-0.8 9.5,1.4 L${L1.split(' ').slice(1).join(' L')} L${R1.split(' ').slice(0, -1).join(' L')} Z`;
+  const ring = (y, h) => `<rect x="0" y="${y}" width="14" height="${h}" fill="${c.ring}"/><rect x="0" y="${y}" width="14" height=".6" fill="#111"/><rect x="0" y="${y + h - .6}" width="14" height=".6" fill="#111"/>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 14 580" ${sizeAttrs} aria-hidden="true">
+<defs>
+<clipPath id="cueClip"><path d="${shape}"/></clipPath>
+<linearGradient id="maple" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${c.shaft[0]}"/><stop offset="1" stop-color="${c.shaft[1]}"/></linearGradient>
+<linearGradient id="round" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#000" stop-opacity=".5"/><stop offset=".28" stop-color="#fff" stop-opacity=".28"/><stop offset=".45" stop-color="#fff" stop-opacity=".06"/><stop offset="1" stop-color="#000" stop-opacity=".55"/></linearGradient>
+<pattern id="linen" width="1.6" height="1.6" patternUnits="userSpaceOnUse" patternTransform="rotate(38)"><rect width="1.6" height="1.6" fill="${(c.wrap || ['#000', '#000'])[0]}"/><rect width=".55" height="1.6" fill="${(c.wrap || ['#000', '#000'])[1]}"/></pattern>
+</defs>
+<g clip-path="url(#cueClip)">
+<rect x="0" y="-2" width="14" height="6.5" fill="#B98B5E"/><rect class="chalkcoat" x="0" y="-2" width="14" height="6.5" fill="#3D6FA8" fill-opacity="${chalkOpacity}"/>
+<rect x="0" y="4.5" width="14" height="9.5" fill="#F4EFE4"/>
+<rect x="0" y="14" width="14" height="276" fill="url(#maple)"/>
+${c.collar ? `<rect x="0" y="290" width="14" height="12" fill="${c.collar}"/><rect x="0" y="291" width="14" height=".7" fill="#111"/><rect x="0" y="300.5" width="14" height=".7" fill="#111"/>` : `<rect x="0" y="290" width="14" height="12" fill="${c.forearm}"/>`}
+<rect x="0" y="302" width="14" height="${c.wrap ? 118 : 222}" fill="${c.forearm}"/>
+${c.points ? `<polygon points="-1.6,420 7,316 15.6,420" fill="${c.veneer}"/>
+<polygon points="-0.4,420 7,321 14.4,420" fill="${c.point}"/>
+<polygon points="-9,420 -1.8,330 1.2,420" fill="${c.veneer}"/><polygon points="-9,420 -1.8,334 0.2,420" fill="${c.point}"/>
+<polygon points="12.8,420 15.8,330 23,420" fill="${c.veneer}"/><polygon points="13.8,420 15.8,334 23,420" fill="${c.point}"/>` : ''}
+${c.wrap ? `${ring(418, 6)}<rect x="0" y="424" width="14" height="94" fill="url(#linen)"/>` : ''}
+${ring(518, 6)}
+<rect x="0" y="524" width="14" height="48" fill="${c.sleeve}"/>
+${c.inlay ? `<polygon points="7,540 8.3,548 7,556 5.7,548" fill="${c.inlay}"/>` : ''}
+<rect x="0" y="572" width="14" height="2" fill="${c.ring}"/>
+<rect x="0" y="574" width="14" height="8" fill="#0E0E0E"/>
+<rect x="0" y="-2" width="14" height="584" fill="url(#round)"/>
+</g>
+<path d="${shape}" fill="none" stroke="#000" stroke-opacity=".35" stroke-width=".3"/>
+</svg>`;
+}
+let cueImg = new Image();
+function buildCue() {
+  const img = new Image();
+  img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(cueSVG('width="56" height="2320"', undefined, 0));
+  cueImg = img;
+  document.getElementById('laneStick').innerHTML = cueSVG('preserveAspectRatio="none"');
+}
+
+function drawCueStick(bx, by, dir, gap) {
+  if (!cueImg.complete || !cueImg.naturalWidth) return;
+  const k = view.k, back = { x: -dir.x, y: -dir.y }, t0 = R + gap;
+  ctx.save();
+  ctx.translate(tx(bx + back.x * t0), ty(by + back.y * t0));
+  ctx.rotate(Math.atan2(back.y, back.x) - Math.PI / 2);
+  ctx.shadowColor = 'rgba(0,0,0,.35)'; ctx.shadowOffsetX = 2; ctx.shadowOffsetY = 3; ctx.shadowBlur = 3;
+  ctx.drawImage(cueImg, -0.7 * k, 0, 1.4 * k, 58 * k);
+  ctx.shadowColor = 'transparent';
+  ctx.fillStyle = `rgba(61,111,168,${chalkLevel().toFixed(2)})`; ctx.fillRect(-0.25 * k, 0, 0.5 * k, 0.42 * k);
+  ctx.restore();
+}
+
+function drawAim() {
+  const p = S.aim, others = S.balls;
+  const c = firstContact(others, p, S.dir, '__shot');
+  ctx.setLineDash([2, 5]); ctx.lineCap = 'round'; ctx.strokeStyle = 'rgba(243,238,227,.9)'; ctx.lineWidth = 1.4;
+  ctx.beginPath(); ctx.moveTo(tx(p.x), ty(p.y)); ctx.lineTo(tx(c.x), ty(c.y)); ctx.stroke(); ctx.setLineDash([]);
+  ctx.beginPath(); ctx.arc(tx(c.x), ty(c.y), R * view.k, 0, 7);
+  ctx.fillStyle = 'rgba(243,238,227,.22)'; ctx.fill(); ctx.setLineDash([2, 2]); ctx.strokeStyle = 'rgba(243,238,227,.9)'; ctx.lineWidth = 1; ctx.stroke(); ctx.setLineDash([]);
+  if (c.kind === 'ball' && c.id === 'cue') {
+    ctx.strokeStyle = css('--danger') || '#FF8A8E'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(tx(c.x), ty(c.y), (R + .5) * view.k, 0, 7); ctx.stroke();
+  }
+  // where the struck ball heads first: along the line through both centres at contact
+  if (c.kind === 'ball') {
+    const ob = others.find(b => b.id === c.id);
+    if (ob) {
+      const ux = ob.x - c.x, uy = ob.y - c.y, d = Math.hypot(ux, uy) || 1, nx = ux / d, ny = uy / d, len = 7;
+      const sx = tx(ob.x + nx * R), sy = ty(ob.y + ny * R), ex = tx(ob.x + nx * (R + len)), ey = ty(ob.y + ny * (R + len));
+      const col = c.id === 'cue' ? (css('--danger') || '#FF8A8E') : (css('--brass') || '#E0AE4A');
+      ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = 2; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); ctx.stroke();
+      const ah = .9 * view.k, px = -ny, py = nx;
+      ctx.beginPath(); ctx.moveTo(ex + nx * ah, ey + ny * ah); ctx.lineTo(ex + px * ah * .6, ey + py * ah * .6); ctx.lineTo(ex - px * ah * .6, ey - py * ah * .6); ctx.closePath(); ctx.fill();
+    }
+  }
+  // aim handle midway
+  const mx = (p.x + c.x) / 2, my = (p.y + c.y) / 2;
+  if (my < KITCHEN - 3) {
+    ctx.fillStyle = 'rgba(20,17,15,.55)'; ctx.strokeStyle = 'rgba(243,238,227,.85)'; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.arc(tx(mx), ty(my), 1.7 * view.k, 0, 7); ctx.fill(); ctx.stroke();
+  }
+  return c;
+}
+
+function drawResult() {
+  const res = S.result; if (!res || !res.layout) return;
+  const cue = S.balls.find(b => b.id === 'cue'); if (!cue || !cue.on) return;
+  const L2 = res.layout, brass = css('--brass') || '#E0AE4A';
+  if (L2.ring) {
+    ctx.save(); ctx.beginPath(); ctx.rect(tx(0), ty(0), W * view.k, L * view.k); ctx.clip();
+    ctx.setLineDash([5, 5]); ctx.strokeStyle = 'rgba(243,238,227,.8)'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(tx(cue.x), ty(cue.y), L2.ring * view.k, 0, 7); ctx.stroke(); ctx.setLineDash([]);
+    ctx.restore();
+  }
+  if (L2.kind === 'score') {
+    L2.scorers.forEach((id, i) => {
+      const b = S.balls.find(x => x.id === id);
+      ctx.strokeStyle = L2.team === 'stripe' ? css('--stripe') : css('--solid'); ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(tx(cue.x), ty(cue.y)); ctx.lineTo(tx(b.x), ty(b.y)); ctx.stroke();
+      const bx = tx(b.x) + 1.6 * view.k, by = ty(b.y) - 1.6 * view.k;
+      ctx.fillStyle = brass; ctx.beginPath(); ctx.arc(bx, by, Math.max(8, 1.2 * view.k), 0, 7); ctx.fill();
+      ctx.fillStyle = '#14110F'; ctx.font = `700 ${Math.max(10, 1.5 * view.k)}px Oswald, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(String(i + 1), bx, by + 0.5); ctx.textBaseline = 'alphabetic';
+    });
+  }
+}
+
+function drawPlacing() {
+  const p = S.placing; if (!p) return;
+  const ok = validSpot(S.balls, p.x, p.y, p.id);
+  drawBall({ x: p.x, y: p.y, team: p.id === 'cue' ? 'cue' : 'eight' }, .9);
+  ctx.strokeStyle = ok ? (css('--brass') || '#E0AE4A') : (css('--danger') || '#FF8A8E'); ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(tx(p.x), ty(p.y), (R + 1.4) * view.k, 0, 7); ctx.stroke();
+}
+
+function render() {
+  drawTable();
+  if (S.phase !== 'lag' && S.phase !== 'lagmove' && S.phase !== 'home') drawHouse();
+  if (S.lag && S.lag.marker) drawBall({ ...S.lag.marker }, .35);
+  for (const b of S.balls) if (b.on && !(S.placing && b.id === S.placing.id)) drawBall(b);
+  const aiming = (S.phase === 'shot' || S.phase === 'lag');
+  if (aiming) {
+    drawAim();
+    drawBall({ x: S.aim.x, y: S.aim.y, team: S.shooter });
+    if (S.drag === 'ball' || !isCpu(S.shooter)) {
+      ctx.setLineDash([3, 2]); ctx.strokeStyle = 'rgba(243,238,227,.55)'; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.arc(tx(S.aim.x), ty(S.aim.y), (R + .9) * view.k, 0, 7); ctx.stroke(); ctx.setLineDash([]);
+    }
+    drawCueStick(S.aim.x, S.aim.y, S.dir, 0.5 + S.pull);
+  }
+  drawLane(aiming && !isCpu(S.shooter));
+  drawPlacing();
+  if (S.phase === 'result') drawResult();
+}
+
+// ---------- HUD ----------
+function hud() {
+  for (const t of ['stripe', 'solid']) {
+    $('name-' + t).textContent = teamName(t);
+    $('pts-' + t).textContent = S.scores[t];
+    $('left-' + t).textContent = S.phase === 'lag' || S.phase === 'lagmove' ? 'Lag' : `${S.left[t]} left`;
+    $('ham-' + t).classList.toggle('on', S.hammer === t);
+    $('chip-' + t).classList.toggle('active', S.shooter === t && ['shot', 'moving', 'lag', 'lagmove', 'ai'].includes(S.phase));
+  }
+  $('endPill').textContent = S.phase === 'lag' || S.phase === 'lagmove' || !S.hammer ? 'Lag'
+    : !isEnds() ? `End ${S.endNum} · to ${S.format.value}`
+    : (S.endNum <= lastEnd() ? `End ${S.endNum} of ${lastEnd()}` : `Extra end ${S.endNum - lastEnd()}`);
+}
+function say(msg, hint = '') { $('msg').textContent = msg; $('hint').textContent = hint; }
+const AIM_HINT = 'Drag in the kitchen to place your ball. Drag above it to aim. Pull the power stick down and let go to shoot.';
+// ---------- power lane ----------
+const lane = $('lane'); let laneStart = 0;
+const laneMax = () => Math.max(60, lane.clientHeight * 0.42);
+function drawLane(enabled) {
+  const coat = $('laneStick').querySelector('.chalkcoat'); if (coat) coat.setAttribute('fill-opacity', chalkLevel().toFixed(2));
+  const cb = $('chalkBtn'), showChalk = enabled && S.phase === 'shot' && chalkOn();
+  if (cb.hidden === showChalk) cb.hidden = !showChalk;
+  const meter = $('chalkMeter'), showMeter = chalkOn() && S.phase !== 'lag' && S.phase !== 'lagmove';
+  if (meter.hidden === showMeter) meter.hidden = !showMeter;
+  if (showMeter) {
+    const lvl = chalkLevel(), blocks = Math.round(lvl * 5), low = lvl < .3;
+    meter.querySelectorAll('.blocks i').forEach((el, i) => el.classList.toggle('gone', i >= blocks));
+    meter.classList.toggle('low', low && !isCpu(S.shooter)); cb.classList.toggle('low', low);
+    $('chalkLbl').textContent = low ? 'Low!' : 'Chalk';
+  }
+  if (showChalk) cb.setAttribute('aria-label', `Chalk the cue. Chalk left: ${Math.round(chalkLevel() * 100)}%`);
+  const f = Math.min(1, S.pull / MAX_PULL), px = f * laneMax();
+  lane.classList.toggle('off', !enabled);
+  $('laneStick').style.transform = `translateY(${px}px)`;
+  $('laneFill').style.height = px + 'px';
+  const pct = Math.round(f * 100);
+  $('lanePct').textContent = pct + '%';
+  lane.setAttribute('aria-valuenow', String(pct));
+}
+const canShoot = () => (S.phase === 'shot' || S.phase === 'lag') && !isCpu(S.shooter);
+lane.addEventListener('pointerdown', e => {
+  if (!canShoot()) return;
+  lane.setPointerCapture(e.pointerId); laneStart = e.clientY; S.drag = 'power'; S.pull = 0;
+});
+lane.addEventListener('pointermove', e => {
+  if (S.drag !== 'power') return;
+  const d = Math.max(0, Math.min(laneMax(), e.clientY - laneStart));
+  S.pull = d / laneMax() * MAX_PULL;
+});
+lane.addEventListener('pointerup', () => endDrag());
+lane.addEventListener('pointercancel', () => { S.drag = null; S.pull = 0; });
+lane.addEventListener('keydown', e => {
+  if (!canShoot()) return;
+  if (e.key === 'ArrowDown') { S.pull = Math.min(MAX_PULL, S.pull + MAX_PULL * .05); e.preventDefault(); }
+  else if (e.key === 'ArrowUp') { S.pull = Math.max(0, S.pull - MAX_PULL * .05); e.preventDefault(); }
+  else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (S.pull / MAX_PULL >= .04) fire(S.pull / MAX_PULL, S.phase === 'lag'); }
+});
+// nearest legal drop spot for the cue or 8-ball (outside the kitchen, off the rails, clear of pockets and balls)
+function nearestDrop(x, y, id) {
+  x = Math.max(R + .06, Math.min(W - R - .06, x)); y = Math.max(R + .06, Math.min(KITCHEN - R - .1, y));
+  if (validSpot(S.balls, x, y, id)) return { x, y };
+  for (let r = .3; r < 12; r += .3) for (let a = 0; a < 24; a++) {
+    const nx = x + Math.cos(a / 24 * 6.283) * r, ny = y + Math.sin(a / 24 * 6.283) * r;
+    if (validSpot(S.balls, nx, ny, id)) return { x: nx, y: ny };
+  }
+  return null;
+}
+
+// ---------- match flow ----------
+function newMatch(mode) {
+  Object.assign(S, { mode, chalk: { stripe: 1, solid: 1 }, scores: { stripe: 0, solid: 0 }, hammer: null, endNum: 1, forceExtra: false, log: [], counter: 0, result: null, notes: [] });
+  $('home').hidden = true; startLag();
+}
+
+function startLag() {
+  S.balls = []; S.lag = { order: ['stripe', 'solid'], i: 0, results: {}, marker: null };
+  S.shooter = 'stripe'; S.left = { stripe: 7, solid: 7 }; beginLagShot();
+}
+function beginLagShot() {
+  S.shooter = S.lag.order[S.lag.i];
+  S.aim = { x: S.shooter === 'stripe' ? 18 : 32, y: 88 }; S.dir = { x: 0, y: -1 }; S.pull = 0; S.phase = 'lag';
+  hud(); say(`${teamName(S.shooter)}: lag. Stop closest to the far rail.`, AIM_HINT);
+  if (isCpu(S.shooter)) cpuLag();
+}
+function cpuLag() {
+  S.phase = 'ai'; say('Computer is lagging…');
+  const target = { x: 32, y: 88 }, power = Math.min(1, speedFor(88 - R - 0.4) / VMAX) * (1 + (Math.random() - .5) * skill().pow);
+  const dir = norm({ x: (Math.random() - .5) * .02, y: -1 });
+  animateCpu(target, dir, power, () => fire(power, true));
+}
+
+function startEnd() {
+  S.balls = [{ id: 'cue', team: 'cue', x: FOOT_SPOT.x, y: FOOT_SPOT.y, vx: 0, vy: 0, on: true }, { id: 'eight', team: 'eight', x: CENTER.x, y: CENTER.y, vx: 0, vy: 0, on: true }];
+  S.left = { stripe: 7, solid: 7 }; S.shooter = other(S.hammer); S.result = null; S.lag = null;
+  if (isEnds() && S.endNum === lastEnd()) S.notes.push(`Final end. ${teamName(S.hammer)} ${S.mode === 'cpu' && S.hammer === 'stripe' ? 'have' : 'has'} the hammer.`);
+  if (!isEnds()) {
+    const hill = t => S.format.value - S.scores[t] === 1;
+    if (hill('stripe') && hill('solid')) S.notes.push('Hill-hill. Next point wins it.');
+    else for (const t of ['stripe', 'solid']) if (hill(t)) S.notes.push(S.mode === 'cpu' && t === 'stripe' ? 'You’re on the hill.' : `${teamName(t)} ${S.mode === 'cpu' ? 'is' : 'are'} on the hill.`);
+  }
+  beginTurn();
+}
+
+function beginTurn() {
+  if (S.left.stripe === 0 && S.left.solid === 0) return finishEnd();
+  if (S.left[S.shooter] === 0) S.shooter = other(S.shooter);
+  S.pull = 0; S.drag = null;
+  if (!validSpot(S.balls, S.aim.x, S.aim.y, '__shot', { kitchen: true })) S.aim = { x: 25, y: 88 };
+  const cue = S.balls.find(b => b.id === 'cue');
+  S.dir = norm({ x: cue.x + 5 - S.aim.x, y: cue.y + 4 - S.aim.y });
+  S.phase = 'shot'; hud();
+  const note = S.notes.length ? S.notes.join(' ') + ' ' : '';
+  S.notes = [];
+  if (isCpu(S.shooter)) { say(note + 'Computer is lining up…'); S.phase = 'ai'; setTimeout(cpuShot, 450); }
+  else say(note + `${teamName(S.shooter)} to shoot.` + (chalkOn() && chalkLevel() < .3 ? ' Low chalk: tap the cube on the rail.' : ''), AIM_HINT);
+}
+
+function cpuShot() {
+  if (chalkOn() && S.chalk.solid < .45) { S.chalk.solid = 1; say('Computer chalks up…'); }
+  const id = 'solid' + (S.counter + 1);
+  const plan = planShot(S.balls, 'solid', '__shot');
+  const ang = (Math.random() - .5) * skill().ang, c = Math.cos(ang), s = Math.sin(ang);
+  const dir = { x: plan.dir.x * c - plan.dir.y * s, y: plan.dir.x * s + plan.dir.y * c };
+  const power = Math.min(1, plan.power * (1 + (Math.random() - .5) * skill().pow));
+  animateCpu({ x: plan.x, y: plan.y }, dir, power, () => fire(power, false));
+}
+
+function animateCpu(target, dir, power, done) {
+  const start = { ...S.aim }, sdir = { ...S.dir }, t0 = performance.now();
+  S.phase = S.lag ? 'lag' : 'shot';
+  const tick = now => {
+    const t = (now - t0) / 1600;
+    if (t < .35) { const u = ease(t / .35); S.aim = { x: start.x + (target.x - start.x) * u, y: start.y + (target.y - start.y) * u }; }
+    else if (t < .6) { const u = ease((t - .35) / .25); S.aim = { ...target }; S.dir = norm({ x: sdir.x + (dir.x - sdir.x) * u, y: sdir.y + (dir.y - sdir.y) * u }); }
+    else if (t < 1) { S.dir = dir; S.pull = power * MAX_PULL * ease((t - .6) / .4); }
+    else { S.pull = power * MAX_PULL; done(); return; }
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+const ease = u => u * u * (3 - 2 * u);
+const norm = v => { const d = Math.hypot(v.x, v.y) || 1; return { x: v.x / d, y: v.y / d }; };
+
+const chalkOn = () => PREFS.chalk && !!S.chalk;
+const chalkLevel = () => (chalkOn() && S.chalk[S.shooter] !== undefined ? S.chalk[S.shooter] : 1);
+function chalkUp() {
+  if (!S.chalk) return;
+  S.chalk[S.shooter] = 1;
+  if (!isCpu(S.shooter)) say('Chalked up.', AIM_HINT);
+}
+function fire(power, isLag) {
+  S.miscue = false;
+  if (!isLag && chalkOn()) {
+    const c = S.chalk[S.shooter];
+    if (c < .3 && Math.random() < (.3 - c) * 2) {
+      S.miscue = true; const a = (Math.random() - .5) * 0.09, co = Math.cos(a), si = Math.sin(a);
+      S.dir = { x: S.dir.x * co - S.dir.y * si, y: S.dir.x * si + S.dir.y * co }; power *= .7;
+    }
+    S.chalk[S.shooter] = Math.max(0, c - .2);
+  }
+  const id = S.shooter + (++S.counter);
+  const b = { id, team: S.shooter, x: S.aim.x, y: S.aim.y, vx: S.dir.x * power * VMAX, vy: S.dir.y * power * VMAX, on: true };
+  S.balls.push(b); S.shot = { id, team: S.shooter }; S.events = []; S.pull = 0; S.drag = null;
+  S.phase = isLag ? 'lagmove' : 'moving'; hud(); say(''); last = performance.now();
+}
+
+function afterLagShot() {
+  const b = S.balls.find(x => x.id === S.shot.id);
+  S.lag.results[S.shooter] = b.on ? Math.max(0, b.y - R) : Infinity;
+  S.lag.marker = b.on ? { x: b.x, y: b.y, team: b.team } : null;
+  S.balls = [];
+  if (S.lag.i === 0) { S.lag.i = 1; beginLagShot(); return; }
+  const a = S.lag.results.stripe, c = S.lag.results.solid;
+  S.lag.marker = null;
+  if (a === c) { S.lag.i = 0; S.lag.results = {}; say('Lag tied or both pocketed. Lag again.'); setTimeout(beginLagShot, 1200); return; }
+  const winner = a < c ? 'stripe' : 'solid';
+  S.hammer = winner; S.phase = 'lagdone'; hud();
+  const why = (x) => (x === Infinity ? 'pocketed' : `${x.toFixed(1)}" from the far rail`);
+  showResult(`${teamName(winner)} ${S.mode === 'cpu' && winner === 'stripe' ? 'win' : 'wins'} the lag`,
+    `${teamName('stripe')}: ${why(a)}. ${teamName('solid')}: ${why(c)}. ` + (S.mode === 'cpu'
+      ? (winner === 'stripe' ? 'You have the hammer, so the computer shoots first.' : 'The computer has the hammer, so you shoot first.')
+      : `${teamName(winner)} have the hammer, so ${teamName(other(winner))} shoot first.`),
+    'Start End 1', () => startEnd(), false);
+}
+
+function afterShot() {
+  const team = S.shot.team;
+  S.left[team]--;
+  const res = resolveShot(S.balls, S.events, team, S.shot.id);
+  if (res.cueEnd) return endByCue(team);
+  const notes = [];
+  if (S.miscue) notes.push(isCpu(team) ? 'Computer miscued.' : 'Miscue! Chalk up before your next shot.');
+  const pocketedOpp = S.events.filter(e => e.type === 'pocket').map(e => S.balls.find(b => b.id === e.id)).filter(b => b && b.team === other(team)).length;
+  if (pocketedOpp) notes.push(pocketedOpp > 1 ? 'Double takeout!' : 'Takeout!');
+  if (res.foulCue) notes.push(`Foul: ${teamPoss(team).toLowerCase()} ball touched the cue and was removed.`);
+  const removedOwn = res.removed.filter(id => id !== S.shot.id || !res.foulCue).length;
+  if (removedOwn) notes.push(`${removedOwn} ${teamPoss(team).toLowerCase()} ${removedOwn > 1 ? 'balls' : 'ball'} on the kitchen line ${removedOwn > 1 ? 'were' : 'was'} removed.`);
+  if (res.centered.length) notes.push(`${res.centered.length} ${teamPoss(other(team)).toLowerCase()} ${res.centered.length > 1 ? 'balls' : 'ball'} moved to the center spot.`);
+  if (res.pendings.some(p => p.id === 'eight')) notes.push('8-ball is off the table.');
+  const lay = scoreLayout(S.balls);
+  if (!res.foulCue && lay.kind === 'score' && lay.team === team && lay.scorers[0] === S.shot.id) notes.push(lay.points > 1 ? `Nice leave. Sitting ${lay.points}.` : 'Nice leave. Sitting closest.');
+  S.notes = notes.map(n => n.charAt(0).toUpperCase() + n.slice(1));
+  S.pend = res.pendings; nextPending();
+}
+
+function nextPending() {
+  if (!S.pend.length) { S.shooter = other(S.shot.team); return beginTurn(); }
+  const p = S.pend.shift();
+  const ball = S.balls.find(b => b.id === p.id);
+  if (isCpu(p.by)) {
+    const spot = bestPlacement(S.balls, p.id, p.by);
+    Object.assign(ball, { x: spot.x, y: spot.y, on: true, vx: 0, vy: 0, pocketed: false });
+    S.notes.push(`Computer placed the ${p.id === 'cue' ? 'cue' : '8-ball'}.`);
+    return nextPending();
+  }
+  const start = ball.on ? { x: ball.x, y: ball.y } : { x: 25, y: 40 };
+  const drop = nearestDrop(start.x, start.y, p.id) || { x: 25, y: 40 };
+  S.placing = { id: p.id, by: p.by, x: drop.x, y: drop.y };
+  S.phase = 'placing'; hud();
+  say((S.notes.length ? S.notes.join(' ') + ' ' : '') + `${teamName(p.by)}: place the ${p.id === 'cue' ? 'cue' : '8-ball'} anywhere outside the kitchen.`, 'Tap or drag on the table, then confirm.');
+  S.notes = [];
+  $('actionBtn').textContent = p.id === 'cue' ? 'Place cue' : 'Place 8-ball'; $('actionBtn').hidden = false; $('hint').hidden = true;
+}
+function confirmPlacing() {
+  const p = S.placing; if (!p || !validSpot(S.balls, p.x, p.y, p.id)) { say('That spot is taken or too close to a pocket or the kitchen. Pick another.'); return; }
+  const ball = S.balls.find(b => b.id === p.id);
+  Object.assign(ball, { x: p.x, y: p.y, on: true, vx: 0, vy: 0, pocketed: false });
+  S.placing = null; $('actionBtn').hidden = true; $('hint').hidden = false; nextPending();
+}
+
+function endByCue(team) {
+  const award = other(team); S.scores[award] += 2; S.hammer = award;
+  S.log.push({ end: S.endNum, stripe: award === 'stripe' ? 2 : 0, solid: award === 'solid' ? 2 : 0 });
+  if (isEnds() ? S.endNum >= lastEnd() : S.scores[award] >= S.format.value) S.forceExtra = true;
+  S.result = null; S.phase = 'result'; hud();
+  showResult(S.balls.find(b => b.id === 'cue').on ? 'Scratch on the line' : 'Scratch!',
+    `${teamName(award)} ${award === 'stripe' && S.mode === 'cpu' ? 'get' : 'gets'} 2 points and the hammer.${S.forceExtra ? ' A match can’t end on the cue, so another end will be played.' : ''}`,
+    nextLabel(), continueMatch, true);
+}
+
+function finishEnd() {
+  const s = scoreLayout(S.balls); S.result = { layout: s }; S.phase = 'result';
+  let title, body, row = { end: S.endNum, stripe: 0, solid: 0 };
+  if (s.kind === 'score') {
+    S.scores[s.team] += s.points; row[s.team] = s.points; S.hammer = other(s.team);
+    title = `${teamName(s.team)} +${s.points}`;
+    body = `${s.points} ${s.points === 1 ? 'ball is' : 'balls are'} closer to the cue than the nearest ${s.team === 'stripe' ? 'solid' : 'stripe'}. ${teamName(s.team)} ${S.mode === 'cpu' && s.team === 'stripe' ? 'shoot' : 'shoots'} first next end.`;
+  } else if (s.kind === 'eight') { S.hammer = other(S.hammer); title = 'Blank end'; body = 'The 8 is blocking. It’s closest to the cue, so nobody scores and the hammer switches.'; }
+  else if (s.kind === 'push') { S.hammer = other(S.hammer); title = 'Push'; body = 'The closest stripe and solid are tied. Nobody scores and the hammer switches.'; }
+  else { title = 'Blank end'; body = 'No balls left in play. The hammer stays.'; }
+  S.log.push(row); hud();
+  showResult(title, body, nextLabel(), continueMatch, true);
+}
+
+function matchState() {
+  const tied = S.scores.stripe === S.scores.solid;
+  const reached = isEnds() ? S.endNum >= lastEnd() : Math.max(S.scores.stripe, S.scores.solid) >= S.format.value;
+  return { tied, reached, done: reached && !S.forceExtra && !tied };
+}
+const nextLabel = () => (matchState().done ? 'See final result' : 'Next end');
+function continueMatch() {
+  const { tied, reached, done } = matchState();
+  if (done) return showMatchOver();
+  if (reached && !S.forceExtra && tied) S.notes.push('Scores are tied. Sudden death: the next end decides it.');
+  S.forceExtra = false; S.endNum++; startEnd();
+}
+
+function fillLine(ls) {
+  ls.innerHTML = '';
+  const col = (cells, cls) => { const d = document.createElement('div'); d.className = 'col' + (cls ? ' ' + cls : ''); cells.forEach((c, i) => { const s = document.createElement('span'); if (i === 0) s.className = 'hd'; s.textContent = c; d.appendChild(s); }); ls.appendChild(d); };
+  col(['End', teamName('stripe'), teamName('solid')], 'lbl');
+  S.log.forEach(r => col([String(r.end), String(r.stripe), String(r.solid)]));
+  col(['Total', String(S.scores.stripe), String(S.scores.solid)]);
+}
+function showMatchOver() {
+  const w = S.scores.stripe > S.scores.solid ? 'stripe' : 'solid';
+  S.phase = 'over'; hud();
+  const win = S.mode !== 'cpu' || w === 'stripe';
+  $('overTitle').textContent = S.mode === 'cpu' ? (w === 'stripe' ? 'You win!' : 'You lose') : `${teamName(w)} win!`;
+  $('overTitle').className = 'bigresult ' + (win ? 'win' : 'lose');
+  $('overBall').className = 'overball ' + w;
+  const hi = Math.max(S.scores.stripe, S.scores.solid), lo = Math.min(S.scores.stripe, S.scores.solid);
+  const ends = S.log.length;
+  $('overBody').textContent = S.mode === 'cpu'
+    ? (win ? `You beat the computer ${hi}–${lo} over ${ends} ${ends === 1 ? 'end' : 'ends'} on ${LEVELS[S.level].label}.` : `The computer won ${hi}–${lo} over ${ends} ${ends === 1 ? 'end' : 'ends'} on ${LEVELS[S.level].label}.`)
+    : `${teamName(w)} beat ${teamName(other(w))} ${hi}–${lo} over ${ends} ${ends === 1 ? 'end' : 'ends'}.`;
+  fillLine($('overLine'));
+  $('over').hidden = false; $('btnRematch').focus();
+}
+function showResult(title, body, btn, onNext, withLine) {
+  $('resTitle').textContent = title; $('resBody').textContent = body; $('resBtn').textContent = btn;
+  const ls = $('lineScore'); ls.hidden = !withLine; ls.innerHTML = '';
+  if (withLine) {
+    const col = (cells, cls) => { const d = document.createElement('div'); d.className = 'col' + (cls ? ' ' + cls : ''); cells.forEach((c, i) => { const s = document.createElement('span'); if (i === 0) s.className = 'hd'; s.textContent = c; d.appendChild(s); }); ls.appendChild(d); };
+    col(['End', teamName('stripe'), teamName('solid')], 'lbl');
+    S.log.forEach(r => col([String(r.end), String(r.stripe), String(r.solid)]));
+    col(['Total', String(S.scores.stripe), String(S.scores.solid)]);
+  }
+  $('result').hidden = false;
+  $('resBtn').onclick = () => { $('result').hidden = true; onNext(); };
+  $('resBtn').focus();
+}
+
+// ---------- input ----------
+let startPt = null;
+canvas.addEventListener('pointerdown', e => {
+  const p = toTable(e);
+  if (S.phase === 'placing') { movePlacing(p); S.drag = 'place'; canvas.setPointerCapture(e.pointerId); return; }
+  if (!canShoot()) return;
+  canvas.setPointerCapture(e.pointerId);
+  if (Math.hypot(p.x - S.aim.x, p.y - S.aim.y) < 3.2 || p.y > KITCHEN) { S.drag = 'ball'; moveShotBall(p); }
+  else { S.drag = 'aim'; S.dir = norm({ x: p.x - S.aim.x, y: p.y - S.aim.y }); }
+});
+canvas.addEventListener('pointermove', e => {
+  if (!S.drag) return;
+  const p = toTable(e);
+  if (S.drag === 'place') { movePlacing(p); return; }
+  if (S.drag === 'ball') moveShotBall(p);
+  else if (S.drag === 'aim') S.dir = norm({ x: p.x - S.aim.x, y: p.y - S.aim.y });
+});
+function moveShotBall(p) {
+  S.aim = { x: Math.max(R + .05, Math.min(W - R - .05, p.x)), y: Math.max(KITCHEN + R + .05, Math.min(L - R - .05, p.y)) };
+}
+function movePlacing(p) { const d = nearestDrop(p.x, p.y, S.placing.id); if (d) { S.placing.x = d.x; S.placing.y = d.y; } }
+const endDrag = () => {
+  if (S.drag === 'power') {
+    const power = S.pull / MAX_PULL;
+    if (power >= 0.04) { fire(power, S.phase === 'lag'); return; }
+    S.pull = 0; say('Shot cancelled.', AIM_HINT);
+  }
+  if (S.drag === 'place') S.drag = null;
+  S.drag = null;
+};
+canvas.addEventListener('pointerup', endDrag);
+canvas.addEventListener('pointercancel', () => { S.drag = null; S.pull = 0; });
+
+$('actionBtn').onclick = confirmPlacing;
+$('chalkBtn').onclick = () => { if (canShoot()) chalkUp(); };
+// Full-screen ad before every match; closable after a short countdown
+function withInterstitial(start) {
+  const ov = $('adFull'), btn = $('adClose'); let n = 5;
+  ov.hidden = false; btn.disabled = true; btn.textContent = `Close in ${n}`;
+  const t = setInterval(() => {
+    n--; if (n > 0) { btn.textContent = `Close in ${n}`; return; }
+    clearInterval(t); btn.disabled = false; btn.textContent = 'Close ad'; btn.focus();
+  }, 1000);
+  btn.onclick = () => { ov.hidden = true; start(); };
+}
+$('btnRematch').onclick = () => { $('over').hidden = true; withInterstitial(() => newMatch(S.mode)); };
+$('btnOverHome').onclick = () => { $('over').hidden = true; S.phase = 'home'; S.balls = []; $('home').hidden = false; };
+function openSetup(mode) {
+  S.pendingMode = mode;
+  $('setupTitle').textContent = mode === 'cpu' ? 'Play the computer' : 'Pass & play';
+  $('lvlGroup').hidden = mode !== 'cpu';
+  $('home').hidden = true; $('setup').hidden = false; $('btnStart').focus();
+}
+$('btnPass').onclick = () => openSetup('pass');
+$('btnCpu').onclick = () => openSetup('cpu');
+$('btnStart').onclick = () => { $('setup').hidden = true; withInterstitial(() => newMatch(S.pendingMode)); };
+$('btnBack').onclick = () => { $('setup').hidden = true; $('home').hidden = false; };
+const openRules = () => { $('rules').hidden = false; $('btnRulesClose').focus(); };
+$('btnRules1').onclick = openRules; $('btnRules2').onclick = () => { $('pause').hidden = true; openRules(); };
+$('btnRulesClose').onclick = () => { $('rules').hidden = true; if (S.phase !== 'home') $('pause').hidden = false; };
+$('menuBtn').onclick = () => { if (S.phase !== 'home') $('pause').hidden = false; };
+$('btnResume').onclick = () => { $('pause').hidden = true; };
+$('btnQuit').onclick = () => { $('pause').hidden = true; $('result').hidden = true; $('actionBtn').hidden = true; S.phase = 'home'; S.balls = []; $('home').hidden = false; };
+
+// ---------- loop ----------
+let last = performance.now();
+function loop(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  const paused = !$('pause').hidden || !$('rules').hidden;
+  if (!paused && (S.phase === 'moving' || S.phase === 'lagmove')) {
+    const n = Math.round(dt * TIMESCALE / DT);
+    for (let i = 0; i < n; i++) step(S.balls, S.events);
+    if (!moving(S.balls)) { if (S.phase === 'lagmove') afterLagShot(); else afterShot(); }
+  }
+  render(); requestAnimationFrame(loop);
+}
+window.addEventListener('resize', resize);
+if (window.ResizeObserver) new ResizeObserver(() => resize()).observe($('tablewrap'));
+function swatchRow(box, items, key, kind, disabledKey) {
+  box.innerHTML = '';
+  for (const [id, it] of Object.entries(items)) {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'swatch' + (kind === 'ball' ? ' ball' : '');
+    b.setAttribute('aria-label', it.name); b.title = it.name;
+    b.setAttribute('aria-pressed', String(PREFS[key] === id));
+    b.style.background = kind === 'stripe' ? `linear-gradient(to bottom, #FBF8F1 0 30%, ${it.hex} 30% 70%, #FBF8F1 70%)` : it.hex;
+    if (disabledKey && PREFS[disabledKey] === id) b.disabled = true;
+    b.onclick = () => { PREFS[key] = id; savePrefs(); applyPrefs(); renderPrefs(); };
+    box.appendChild(b);
+  }
+}
+function renderPrefs() {
+  const t = $('optTheme'); t.innerHTML = '';
+  for (const [id, name] of [['system', 'Auto'], ['light', 'Light'], ['dark', 'Dark']]) {
+    const b = document.createElement('button'); b.type = 'button'; b.textContent = name;
+    b.setAttribute('aria-pressed', String(PREFS.theme === id));
+    b.onclick = () => { PREFS.theme = id; savePrefs(); applyPrefs(); renderPrefs(); };
+    t.appendChild(b);
+  }
+  swatchRow($('optFelt'), FELTS, 'felt'); $('noteFelt').textContent = FELTS[PREFS.felt].name;
+  swatchRow($('optRail'), RAILS, 'rail'); $('noteRail').textContent = RAILS[PREFS.rail].name;
+  const c = $('optCue'); c.innerHTML = '';
+  for (const [id, cue] of Object.entries(CUES)) {
+    const b = document.createElement('button'); b.type = 'button'; b.textContent = cue.name;
+    b.setAttribute('aria-pressed', String(PREFS.cue === id));
+    b.onclick = () => { PREFS.cue = id; savePrefs(); applyPrefs(); renderPrefs(); };
+    c.appendChild(b);
+  }
+  const ch = $('optChalk'); ch.innerHTML = '';
+  for (const [v, name] of [[true, 'On'], [false, 'Off']]) {
+    const b = document.createElement('button'); b.type = 'button'; b.textContent = name;
+    b.setAttribute('aria-pressed', String(PREFS.chalk === v));
+    b.onclick = () => { PREFS.chalk = v; savePrefs(); renderPrefs(); };
+    ch.appendChild(b);
+  }
+  $('noteChalk').textContent = PREFS.chalk
+    ? 'Each shot wears chalk off the tip. Shoot with low chalk and you risk a miscue.'
+    : 'Tips never wear and miscues are off.';
+  swatchRow($('optStripe'), BALLS, 'stripe', 'stripe', 'solid');
+  swatchRow($('optSolid'), BALLS, 'solid', 'ball', 'stripe');
+  drawCuePreview();
+}
+function drawCuePreview() {
+  const cv = $('cuePreview'), g = cv.getContext('2d'), img = cueImg;
+  const go = () => {
+    const dpr = window.devicePixelRatio || 1, w = cv.clientWidth || 300, h = 40;
+    cv.width = w * dpr; cv.height = h * dpr; g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+    const len = w - 8, wid = len * 14 / 580 * 1.6;
+    g.save(); g.translate(4, h / 2); g.rotate(-Math.PI / 2); g.drawImage(img, -wid / 2, 0, wid, len); g.restore();
+  };
+  if (img.complete && img.naturalWidth) go(); else img.onload = go;
+}
+$('btnSettings').onclick = () => { $('home').hidden = true; $('prefs').hidden = false; renderPrefs(); $('btnPrefsDone').focus(); };
+$('btnPrefsDone').onclick = () => { $('prefs').hidden = true; $('home').hidden = false; };
+applyPrefs(); resize(); hud(); requestAnimationFrame(loop);
+</script>
+</body>
+</html>
