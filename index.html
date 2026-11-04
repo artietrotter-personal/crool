@@ -73,8 +73,8 @@ button:focus-visible { outline: 3px solid var(--brass); outline-offset: 2px; }
 .lane { width: 56px; flex-shrink: 0; position: relative; border-radius: 18px; background: var(--surface); border: 1px solid var(--line); touch-action: none; overflow: hidden; cursor: grab; }
 .lane.off { opacity: .45; cursor: default; }
 .lane:focus-visible { outline: 3px solid var(--brass); outline-offset: 2px; }
-.lane .plbl { position: absolute; top: 12px; left: 0; right: 0; text-align: center; font-size: 11px; color: var(--muted); }
-.lane .chalkmeter { position: absolute; top: 40px; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.lane .plbl { position: absolute; top: 96px; left: 0; right: 0; text-align: center; font-size: 11px; color: var(--muted); }
+.lane .chalkmeter { position: absolute; top: 60px; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; gap: 3px; }
 .lane .chalkmeter[hidden] { display: none; }
 .lane .blocks { display: flex; gap: 2px; }
 .lane .blocks i { width: 8px; height: 13px; border-radius: 2px; background: #6E97CC; box-shadow: inset 0 -2px 0 #2C5487; }
@@ -86,13 +86,20 @@ button:focus-visible { outline: 3px solid var(--brass); outline-offset: 2px; }
 .chalkbtn.low { animation: cubepulse 1s ease-in-out infinite; }
 @keyframes cubepulse { 50% { transform: scale(1.25); } }
 /* pull-back marks: the stick's tip reaching a mark means 25 / 50 / 75% power */
-.lane .tick { position: absolute; left: 0; right: 0; top: 100px; height: 0; pointer-events: none; }
+.lane .tick { position: absolute; left: 0; right: 0; top: 116px; height: 0; pointer-events: none; }
 .lane .tick::before { content: ''; position: absolute; left: 5px; width: 10px; top: -1px; height: 2px; border-radius: 1px; background: var(--muted); }
 .lane .tick span { position: absolute; right: 3px; top: -7px; font-family: Oswald, sans-serif; font-size: 10px; line-height: 14px; color: var(--muted); }
 .lane .tick.hit::before { background: var(--brass); }
 .lane .tick.hit span { color: var(--brass); font-weight: 700; }
-.lane .stick { position: absolute; left: 50%; top: 100px; width: 22px; margin-left: -11px; height: 76%; filter: drop-shadow(2px 3px 1.5px rgba(0,0,0,.4)); will-change: transform; }
+.lane .stick { position: absolute; left: 50%; top: 116px; width: 22px; margin-left: -11px; height: 76%; filter: drop-shadow(2px 3px 1.5px rgba(0,0,0,.4)); will-change: transform; }
 .lane .stick svg { display: block; width: 100%; height: 100%; }
+/* spin control: the face of the struck ball; the red dot is where the cue tip strikes */
+.lane .spin { position: absolute; top: 8px; left: 50%; width: 44px; height: 44px; margin-left: -22px; padding: 0; border-radius: 50%; border: 1px solid rgba(0,0,0,.25); background: radial-gradient(circle at 36% 30%, #FFFFFF 0, #FBF8F1 28%, #D8D0BF 100%); box-shadow: 0 2px 3px rgba(0,0,0,.25); cursor: pointer; touch-action: none; z-index: 2; }
+.lane .spin::before, .lane .spin::after { content: ''; position: absolute; background: rgba(0,0,0,.14); }
+.lane .spin::before { left: 50%; top: 4px; bottom: 4px; width: 1px; }
+.lane .spin::after { top: 50%; left: 4px; right: 4px; height: 1px; }
+.lane .spin:disabled { cursor: default; }
+.lane .spin i { position: absolute; left: 50%; top: 50%; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: #C62F38; box-shadow: 0 0 0 1.5px #FFFFFF, 0 0 0 2.5px rgba(0,0,0,.25); pointer-events: none; z-index: 1; }
 
 .foot { height: 100px; flex-shrink: 0; display: flex; flex-direction: column; gap: 6px; align-items: stretch; overflow: hidden; }
 .hint[hidden] { display: none; }
@@ -164,6 +171,7 @@ button:focus-visible { outline: 3px solid var(--brass); outline-offset: 2px; }
     <div class="tablewrap" id="tablewrap"><canvas id="table" role="img" aria-label="Pool table"></canvas>
       <button class="chalkbtn" id="chalkBtn" aria-label="Chalk the cue" hidden><svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><path d="M4 9 L13 4 L22 9 L13 14 Z" fill="#6E97CC"/><path d="M4 9 L13 14 L13 23 L4 18 Z" fill="#3D6FA8"/><path d="M22 9 L13 14 L13 23 L22 18 Z" fill="#2C5487"/><ellipse cx="13" cy="9" rx="3.4" ry="1.9" fill="#24466F"/></svg></button></div>
     <div class="lane off" id="lane" role="slider" tabindex="0" aria-label="Shot power. Pull down, then let go to shoot." aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+      <button type="button" class="spin" id="spinBall" aria-label="Spin: center ball"><i id="spinDot"></i></button>
       <div class="plbl">Power</div>
       <div class="chalkmeter" id="chalkMeter" aria-hidden="true"><div class="blocks"><i></i><i></i><i></i><i></i><i></i></div><div class="clbl" id="chalkLbl">Chalk</div></div>
       <div class="tick" data-at=".25"><span>25</span></div><div class="tick" data-at=".5"><span>50</span></div><div class="tick" data-at=".75"><span>75</span></div><div class="stick" id="laneStick"></div>
@@ -255,7 +263,8 @@ button:focus-visible { outline: 3px solid var(--brass); outline-offset: 2px; }
       <li><strong>Cue contact.</strong> If your struck ball touches the cue, it is removed and your opponent places the cue anywhere. Knocking other balls into the cue is legal.</li>
       <li><strong>Cue pocketed or on the line.</strong> The end stops. Opponent gets 2 points and the hammer. A match never ends this way; another end is played.</li>
       <li><strong>The 8-ball.</strong> Pocketed or on the line, the shooting team places it anywhere.</li>
-      <li><strong>Chalk</strong> (can be turned off in Settings). Each shot wears the chalk off your tip; the chalk meter on the power stick shows what’s left. Tap the chalk cube on the rail to chalk up. Shoot with a bare tip and you risk a miscue.</li>
+      <li><strong>Spin.</strong> Tap or drag on the white ball above the power stick to pick where the tip strikes. High is follow: your ball keeps rolling after it hits. Low is draw: it spins back, but draw wears off over long shots. Left or right is english, which bends the rebound off a cushion. Spin resets to center after every shot.</li>
+      <li><strong>Chalk</strong> (can be turned off in Settings). Each shot wears the chalk off your tip; the chalk meter on the power stick shows what’s left. Tap the chalk cube on the rail to chalk up. Shoot with a bare tip and you risk a miscue, more so the farther from center you strike.</li>
       <li><strong>Scoring.</strong> The closest team scores a point for each ball nearer the cue than the opponent’s nearest. 8-ball closest or a tie: no points, hammer switches. Scoring team shoots first next end.</li>
     </ol>
     <button class="btn primary" id="btnRulesClose">Got it</button>
@@ -296,6 +305,10 @@ const DECEL = 6;                        // rolling friction, in/s^2
 const CUSHION_E = 0.72, BALL_E = 0.95;
 const VMAX = 68;                        // in/s at full power
 const DT = 1 / 300;
+// Spin. A ball struck off-center carries fd (follow + / draw -, -1..1) and side (right + / left -, -1..1).
+const SPIN_K = 0.45;      // follow/draw: extra speed along the ball's path after its first hit, as a share of the speed it gave up
+const DRAW_FADE = 40;     // inches over which backspin wears off on the cloth
+const ENGLISH_K = 0.35;   // side spin: sideways kick off a cushion, as a share of the speed into the cushion
 
 // Cushion segments (ball centre bounces at distance R)
 const SEGS = [
@@ -337,6 +350,7 @@ function step(balls, events) {
     if (sp <= dv) { b.vx = 0; b.vy = 0; continue; }
     const f = (sp - dv) / sp; b.vx *= f; b.vy *= f;
     b.x += b.vx * DT; b.y += b.vy * DT;
+    if (b.fd) b.trav = (b.trav || 0) + sp * DT;
   }
   // cushions
   for (const b of balls) {
@@ -349,6 +363,12 @@ function step(balls, events) {
         const vn = b.vx * nx + b.vy * ny;
         b.x += nx * (R - d); b.y += ny * (R - d);
         if (vn < 0) {
+          // side spin: running or reverse english pushes the rebound toward the side the tip struck
+          if (b.side) {
+            const sp = Math.hypot(b.vx, b.vy) || 1, rx = -b.vy / sp, ry = b.vx / sp, tnx = -ny, tny = nx;
+            const kick = b.side * ENGLISH_K * -vn * (rx * tnx + ry * tny);
+            b.vx += kick * tnx; b.vy += kick * tny; b.side *= 0.5;
+          }
           b.vx -= (1 + CUSHION_E) * vn * nx; b.vy -= (1 + CUSHION_E) * vn * ny;
           if (events) events.push({ type: 'rail', id: b.id, y: cy });
         }
@@ -368,7 +388,10 @@ function step(balls, events) {
         const rv = (a.vx - b.vx) * nx + (a.vy - b.vy) * ny;
         if (rv > 0) {
           const jimp = (1 + BALL_E) / 2 * rv;
+          const pa = { vx: a.vx, vy: a.vy }, pb = { vx: b.vx, vy: b.vy };
           a.vx -= jimp * nx; a.vy -= jimp * ny; b.vx += jimp * nx; b.vy += jimp * ny;
+          if (a.fd && !a.fdUsed) applyFollowDraw(a, pa, pa.vx * nx + pa.vy * ny);
+          if (b.fd && !b.fdUsed) applyFollowDraw(b, pb, -(pb.vx * nx + pb.vy * ny));
           if (events) events.push({ type: 'hit', a: a.id, b: b.id });
         }
       }
@@ -386,6 +409,15 @@ function step(balls, events) {
 }
 
 function moving(balls) { return balls.some(b => b.on && (b.vx !== 0 || b.vy !== 0)); }
+
+// Follow/draw takes hold on the struck ball's first contact: it keeps rolling forward (follow) or
+// spins back (draw) along the line it was travelling. Draw fades the farther the ball has rolled.
+function followDrawEffect(b) { return b.fd > 0 ? b.fd : b.fd * Math.exp(-(b.trav || 0) / DRAW_FADE); }
+function applyFollowDraw(b, pre, vIn) {
+  b.fdUsed = true; if (vIn <= 0) return;
+  const sp = Math.hypot(pre.vx, pre.vy) || 1, k = followDrawEffect(b) * SPIN_K * vIn;
+  b.vx += pre.vx / sp * k; b.vy += pre.vy / sp * k;
+}
 
 // Simulate a full shot to rest; returns the events.
 function simulate(balls, maxSteps = 9000) {
@@ -506,7 +538,8 @@ function bestPlacement(balls, id, team) {
 // Speed needed to roll a straight distance d and stop.
 const speedFor = d => Math.sqrt(2 * DECEL * Math.max(0.5, d));
 
-function planShot(balls, team, shotBallId, rng = Math.random) {
+// spins: tip positions to try on takeouts, as [side, follow/draw] in spin-control units (|v| <= MAX_TIP)
+function planShot(balls, team, shotBallId, rng = Math.random, spins = [[0, 0]]) {
   const cue = balls.find(b => b.id === 'cue');
   const targets = [];
   targets.push({ x: cue.x, y: cue.y + 2.6, draw: true });
@@ -515,6 +548,20 @@ function planShot(balls, team, shotBallId, rng = Math.random) {
   for (const b of balls) if (b.on && b.team === team) targets.push({ x: b.x, y: b.y + 3 + rng() * 6, draw: true });
   targets.push({ x: cue.x + (rng() - 0.5) * 4, y: cue.y + 14 + rng() * 10, draw: true }); // guard
   let best = null, bestV = -Infinity;
+  const takes = []; // center-ball takeouts, kept so the best few can be retried with spin
+  const trySpot = (pxC, py, dir, power, sx, sy) => {
+    const trial = cloneBalls(balls);
+    let sb = trial.find(b => b.id === shotBallId);
+    if (!sb) { sb = { id: shotBallId, team }; trial.push(sb); }
+    sb.x = pxC; sb.y = py; sb.on = true; sb.vx = dir.x * power * VMAX; sb.vy = dir.y * power * VMAX;
+    if (sx || sy) { sb.fd = sy / MAX_TIP; sb.side = sx / MAX_TIP; }
+    const ev = simulate(trial, 6000);
+    const res = resolveShot(trial, ev, team, shotBallId);
+    const v = res.cueEnd ? -40 : evaluate(trial, team) - (res.foulCue ? 15 : 0);
+    if (v > bestV) { bestV = v; best = { x: pxC, y: py, dir, power, spin: { x: sx, y: sy } }; }
+    return v;
+  };
+  // pass 1: every candidate, center ball
   for (const t of targets) {
     for (const px of [t.x - 4, t.x, t.x + 4, 6 + rng() * 38]) {
       const pxC = Math.max(R + 0.2, Math.min(W - R - 0.2, px)), py = 88 + (rng() - 0.5) * 8;
@@ -523,21 +570,15 @@ function planShot(balls, team, shotBallId, rng = Math.random) {
       const dir = { x: dx / d, y: dy / d };
       const speeds = t.take ? [speedFor(d) * 1.5, speedFor(d) * 2.1, VMAX * 0.9] : [speedFor(d - 0.3), speedFor(d + 1.2)];
       for (const v0 of speeds) {
-        const power = Math.min(1, v0 / VMAX);
-        const trial = cloneBalls(balls);
-        let sb = trial.find(b => b.id === shotBallId);
-        if (!sb) { sb = { id: shotBallId, team }; trial.push(sb); }
-        sb.x = pxC; sb.y = py; sb.on = true; sb.vx = dir.x * power * VMAX; sb.vy = dir.y * power * VMAX;
-        const ev = simulate(trial, 6000);
-        const res = resolveShot(trial, ev, team, shotBallId);
-        let v;
-        if (res.cueEnd) v = -40;
-        else { v = evaluate(trial, team); if (res.foulCue) v -= 15; }
-        if (v > bestV) { bestV = v; best = { x: pxC, y: py, dir, power }; }
+        const power = Math.min(1, v0 / VMAX), v = trySpot(pxC, py, dir, power, 0, 0);
+        if (t.take) takes.push({ pxC, py, dir, power, v });
       }
     }
   }
-  if (!best) best = { x: 25, y: 88, dir: { x: 0, y: -1 }, power: 0.6 };
+  // pass 2: the six best takeouts again with each spin this level knows (follow to stay, draw to come back, english)
+  takes.sort((a, b) => b.v - a.v);
+  for (const c of takes.slice(0, 6)) for (const [sx, sy] of spins) if (sx || sy) trySpot(c.pxC, c.py, c.dir, c.power, sx, sy);
+  if (!best) best = { x: 25, y: 88, dir: { x: 0, y: -1 }, power: 0.6, spin: { x: 0, y: 0 } };
   return best;
 }
 
@@ -549,8 +590,10 @@ const S = {
   mode: 'pass', phase: 'home', balls: [], scores: { stripe: 0, solid: 0 }, left: { stripe: 7, solid: 7 },
   hammer: null, shooter: 'stripe', endNum: 1, forceExtra: false, log: [], counter: 0,
   aim: { x: 25, y: 88 }, dir: { x: 0, y: -1 }, pull: 0, drag: null, placing: null, pend: [],
-  shot: null, events: [], lag: null, result: null, notes: []
+  shot: null, events: [], lag: null, result: null, notes: [], spin: { x: 0, y: 0 }
 };
+const MAX_TIP = 0.8;   // the tip can strike up to 80% of the way from the center to the edge of the ball
+const STICK_TOP = 116; // px from the top of the power lane to the tip of the power stick (matches the CSS)
 let view = { k: 6, ox: 0, oy: 0, cw: 0, ch: 0 };
 
 const teamName = t => (S.mode === 'cpu' ? (t === 'stripe' ? 'You' : 'Computer') : (t === 'stripe' ? 'Stripes' : 'Solids'));
@@ -578,9 +621,9 @@ for (const b of document.querySelectorAll('#fmtType button')) b.onclick = () => 
 renderFormat();
 // Computer skill: full-range aim error (radians) and power error (fraction) on each shot
 const LEVELS = {
-  easy: { label: 'Banger', ang: 0.06, pow: 0.18, note: 'Bar-room regular. Swings hard, misjudges speed, and leaves you plenty.' },
-  medium: { label: 'League', ang: 0.022, pow: 0.08, note: 'Tuesday-night league player. Picks smart shots but leaves you openings.' },
-  hard: { label: 'Shark', ang: 0.008, pow: 0.03, note: 'Hustles for a living. Rarely misses. Expect takeouts and tight draws.' }
+  easy: { label: 'Banger', tip: 0.2, spins: [[0, 0], [0, .5]], ang: 0.06, pow: 0.18, note: 'Bar-room regular. Swings hard, misjudges speed, and leaves you plenty.' },
+  medium: { label: 'League', tip: 0.1, spins: [[0, 0], [0, .6], [0, -.6]], ang: 0.022, pow: 0.08, note: 'Tuesday-night league player. Picks smart shots but leaves you openings.' },
+  hard: { label: 'Shark', tip: 0.04, spins: [[0, 0], [0, .75], [0, -.75], [.6, 0], [-.6, 0]], ang: 0.008, pow: 0.03, note: 'Hustles for a living. Rarely misses. Expect takeouts and tight draws.' }
 };
 S.level = 'medium';
 function renderLevel() {
@@ -810,7 +853,8 @@ function drawCueStick(bx, by, dir, gap) {
   if (!cueImg.complete || !cueImg.naturalWidth) return;
   const k = view.k, back = { x: -dir.x, y: -dir.y }, t0 = R + gap;
   ctx.save();
-  ctx.translate(tx(bx + back.x * t0), ty(by + back.y * t0));
+  const off = (S.spin.x || 0) * R; // shift the tip left or right to show side spin
+  ctx.translate(tx(bx + back.x * t0 - dir.y * off), ty(by + back.y * t0 + dir.x * off));
   ctx.rotate(Math.atan2(back.y, back.x) - Math.PI / 2);
   ctx.shadowColor = 'rgba(0,0,0,.35)'; ctx.shadowOffsetX = 2; ctx.shadowOffsetY = 3; ctx.shadowBlur = 3;
   ctx.drawImage(cueImg, -0.7 * k, 0, 1.4 * k, 58 * k);
@@ -840,6 +884,23 @@ function drawAim() {
       ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); ctx.stroke();
       const ah = .9 * view.k, px = -ny, py = nx;
       ctx.beginPath(); ctx.moveTo(ex + nx * ah, ey + ny * ah); ctx.lineTo(ex + px * ah * .6, ey + py * ah * .6); ctx.lineTo(ex - px * ah * .6, ey - py * ah * .6); ctx.closePath(); ctx.fill();
+    }
+  }
+  // follow/draw: a short dashed line shows where your ball goes after the hit
+  if (c.kind === 'ball' && S.spin.y && S.phase === 'shot') {
+    const ob = others.find(b => b.id === c.id);
+    if (ob) {
+      const d0 = Math.hypot(ob.x - c.x, ob.y - c.y) || 1, nx = (ob.x - c.x) / d0, ny = (ob.y - c.y) / d0;
+      const vIn = S.dir.x * nx + S.dir.y * ny;
+      const fd = S.spin.y / MAX_TIP, eff = fd > 0 ? fd : fd * Math.exp(-Math.hypot(c.x - p.x, c.y - p.y) / DRAW_FADE);
+      let vx = S.dir.x - (1 + BALL_E) / 2 * vIn * nx + S.dir.x * eff * SPIN_K * vIn;
+      let vy = S.dir.y - (1 + BALL_E) / 2 * vIn * ny + S.dir.y * eff * SPIN_K * vIn;
+      const m = Math.hypot(vx, vy);
+      if (m > .05) {
+        const len = 4 + 8 * Math.min(1, m);
+        ctx.setLineDash([3, 4]); ctx.strokeStyle = 'rgba(243,238,227,.75)'; ctx.lineWidth = 1.4;
+        ctx.beginPath(); ctx.moveTo(tx(c.x), ty(c.y)); ctx.lineTo(tx(c.x + vx / m * len), ty(c.y + vy / m * len)); ctx.stroke(); ctx.setLineDash([]);
+      }
     }
   }
   // aim handle midway
@@ -938,11 +999,58 @@ function drawLane(enabled) {
   $('laneStick').style.transform = `translateY(${px}px)`;
   // marks sit where the stick's tip lands at 25/50/75% pull; they light up once passed
   for (const t of lane.querySelectorAll('.tick')) {
-    const at = +t.dataset.at; t.style.top = (100 + at * laneMax()) + 'px'; t.classList.toggle('hit', f >= at - 0.005 && f > 0);
+    const at = +t.dataset.at; t.style.top = (STICK_TOP + at * laneMax()) + 'px'; t.classList.toggle('hit', f >= at - 0.005 && f > 0);
   }
   const pct = Math.round(f * 100);
   lane.setAttribute('aria-valuenow', String(pct));
+  drawSpin();
 }
+// ---------- spin control ----------
+const spinBall = $('spinBall');
+const canSpin = () => S.phase === 'shot' && !isCpu(S.shooter);
+function spinWords() {
+  const x = S.spin.x / MAX_TIP, y = S.spin.y / MAX_TIP;
+  if (Math.hypot(x, y) < .05) return 'center ball';
+  const v = y > .15 ? 'follow' : y < -.15 ? 'draw' : '', h = x > .15 ? 'right english' : x < -.15 ? 'left english' : '';
+  return [v, h].filter(Boolean).join(' and ');
+}
+function drawSpin() {
+  const dot = $('spinDot'), r = spinBall.clientWidth / 2 || 22;
+  dot.style.transform = `translate(${(S.spin.x * r).toFixed(1)}px, ${(-S.spin.y * r).toFixed(1)}px)`;
+  const on = canSpin();
+  if (spinBall.disabled === on) spinBall.disabled = !on;
+  const label = `Spin: ${spinWords()}. Tap or drag on the ball to set where the cue strikes; arrow keys move it, 0 resets.`;
+  if (spinBall.getAttribute('aria-label') !== label) spinBall.setAttribute('aria-label', label);
+}
+function setSpin(x, y) {
+  const m = Math.hypot(x, y);
+  if (m > MAX_TIP) { x *= MAX_TIP / m; y *= MAX_TIP / m; }
+  if (Math.hypot(x, y) < 0.1) { x = 0; y = 0; } // snap to center ball
+  S.spin = { x, y };
+}
+function spinFromPointer(e) {
+  const r = spinBall.getBoundingClientRect(), rad = r.width / 2;
+  setSpin((e.clientX - r.left - rad) / rad, -(e.clientY - r.top - rad) / rad);
+}
+let spinDrag = false;
+spinBall.addEventListener('pointerdown', e => {
+  e.stopPropagation(); if (!canSpin()) return;
+  spinBall.setPointerCapture(e.pointerId); spinDrag = true; spinFromPointer(e);
+});
+spinBall.addEventListener('pointermove', e => { if (spinDrag) spinFromPointer(e); });
+spinBall.addEventListener('pointerup', e => { e.stopPropagation(); spinDrag = false; });
+spinBall.addEventListener('pointercancel', () => { spinDrag = false; });
+spinBall.addEventListener('keydown', e => {
+  e.stopPropagation(); if (!canSpin()) return;
+  const st = .2, k = e.key;
+  if (k === 'ArrowUp') setSpin(S.spin.x, S.spin.y + st);
+  else if (k === 'ArrowDown') setSpin(S.spin.x, S.spin.y - st);
+  else if (k === 'ArrowLeft') setSpin(S.spin.x - st, S.spin.y);
+  else if (k === 'ArrowRight') setSpin(S.spin.x + st, S.spin.y);
+  else if (k === '0' || k === 'Home') setSpin(0, 0);
+  else return;
+  e.preventDefault();
+});
 const canShoot = () => (S.phase === 'shot' || S.phase === 'lag') && !isCpu(S.shooter);
 lane.addEventListener('pointerdown', e => {
   if (!canShoot()) return;
@@ -1010,7 +1118,7 @@ function startEnd() {
 function beginTurn() {
   if (S.left.stripe === 0 && S.left.solid === 0) return finishEnd();
   if (S.left[S.shooter] === 0) S.shooter = other(S.shooter);
-  S.pull = 0; S.drag = null;
+  S.pull = 0; S.drag = null; S.spin = { x: 0, y: 0 };
   if (!validSpot(S.balls, S.aim.x, S.aim.y, '__shot', { kitchen: true })) S.aim = { x: 25, y: 88 };
   const cue = S.balls.find(b => b.id === 'cue');
   S.dir = norm({ x: cue.x + 5 - S.aim.x, y: cue.y + 4 - S.aim.y });
@@ -1024,22 +1132,24 @@ function beginTurn() {
 function cpuShot() {
   if (chalkOn() && S.chalk.solid < .45) { S.chalk.solid = 1; say('Computer chalks up…'); }
   const id = 'solid' + (S.counter + 1);
-  const plan = planShot(S.balls, 'solid', '__shot');
+  const plan = planShot(S.balls, 'solid', '__shot', Math.random, skill().spins);
+  const tipErr = () => (Math.random() - .5) * 2 * skill().tip;
+  const spin = plan.spin.x || plan.spin.y ? { x: plan.spin.x + tipErr(), y: plan.spin.y + tipErr() } : { x: 0, y: 0 };
   const ang = (Math.random() - .5) * skill().ang, c = Math.cos(ang), s = Math.sin(ang);
   const dir = { x: plan.dir.x * c - plan.dir.y * s, y: plan.dir.x * s + plan.dir.y * c };
   const power = Math.min(1, plan.power * (1 + (Math.random() - .5) * skill().pow));
-  animateCpu({ x: plan.x, y: plan.y }, dir, power, () => fire(power, false));
+  animateCpu({ x: plan.x, y: plan.y }, dir, power, () => fire(power, false), spin);
 }
 
-function animateCpu(target, dir, power, done) {
+function animateCpu(target, dir, power, done, spin = { x: 0, y: 0 }) {
   const start = { ...S.aim }, sdir = { ...S.dir }, t0 = performance.now();
   S.phase = S.lag ? 'lag' : 'shot';
   const tick = now => {
     const t = (now - t0) / 1600;
     if (t < .35) { const u = ease(t / .35); S.aim = { x: start.x + (target.x - start.x) * u, y: start.y + (target.y - start.y) * u }; }
     else if (t < .6) { const u = ease((t - .35) / .25); S.aim = { ...target }; S.dir = norm({ x: sdir.x + (dir.x - sdir.x) * u, y: sdir.y + (dir.y - sdir.y) * u }); }
-    else if (t < 1) { S.dir = dir; S.pull = power * MAX_PULL * ease((t - .6) / .4); }
-    else { S.pull = power * MAX_PULL; done(); return; }
+    else if (t < 1) { S.dir = dir; setSpin(spin.x * ease((t - .6) / .4), spin.y * ease((t - .6) / .4)); S.pull = power * MAX_PULL * ease((t - .6) / .4); }
+    else { S.pull = power * MAX_PULL; if (!S.lag) { const m = Math.hypot(spin.x, spin.y); S.spin = m > MAX_TIP ? { x: spin.x * MAX_TIP / m, y: spin.y * MAX_TIP / m } : { ...spin }; } done(); return; }
     requestAnimationFrame(tick);
   };
   requestAnimationFrame(tick);
@@ -1056,16 +1166,19 @@ function chalkUp() {
 }
 function fire(power, isLag) {
   S.miscue = false;
+  let fd = isLag ? 0 : S.spin.y / MAX_TIP, side = isLag ? 0 : S.spin.x / MAX_TIP;
   if (!isLag && chalkOn()) {
-    const c = S.chalk[S.shooter];
-    if (c < .3 && Math.random() < (.3 - c) * 2) {
+    // center ball keeps the original rule; striking off-center raises the threshold and the odds
+    const c = S.chalk[S.shooter], off = Math.min(1, Math.hypot(fd, side)), limit = .3 + .2 * off;
+    if (c < limit && Math.random() < (limit - c) * 2 * (1 + off)) {
       S.miscue = true; const a = (Math.random() - .5) * 0.09, co = Math.cos(a), si = Math.sin(a);
-      S.dir = { x: S.dir.x * co - S.dir.y * si, y: S.dir.x * si + S.dir.y * co }; power *= .7;
+      S.dir = { x: S.dir.x * co - S.dir.y * si, y: S.dir.x * si + S.dir.y * co }; power *= .7; fd = 0; side = 0;
     }
     S.chalk[S.shooter] = Math.max(0, c - .2);
   }
   const id = S.shooter + (++S.counter);
   const b = { id, team: S.shooter, x: S.aim.x, y: S.aim.y, vx: S.dir.x * power * VMAX, vy: S.dir.y * power * VMAX, on: true };
+  if (fd) b.fd = fd; if (side) b.side = side;
   S.balls.push(b); S.shot = { id, team: S.shooter }; S.events = []; S.pull = 0; S.drag = null;
   S.phase = isLag ? 'lagmove' : 'moving'; hud(); say(''); last = performance.now();
 }
@@ -1090,6 +1203,7 @@ function afterLagShot() {
 }
 
 function afterShot() {
+  for (const b of S.balls) { delete b.fd; delete b.side; delete b.trav; delete b.fdUsed; }
   const team = S.shot.team;
   S.left[team]--;
   const res = resolveShot(S.balls, S.events, team, S.shot.id);
