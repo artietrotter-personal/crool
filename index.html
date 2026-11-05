@@ -261,7 +261,7 @@ button:focus-visible { outline: 3px solid var(--brass); outline-offset: 2px; }
       <li><strong>Shooting.</strong> Drag your ball anywhere fully behind the kitchen line. Drag above the kitchen to aim. Pull the power stick beside the table down to set power and let go to shoot; slide it back to the top before letting go to cancel.</li>
       <li><strong>Kitchen line.</strong> After a shot, your team’s balls on or across the line are removed. Opponent balls go to the center spot, behind any ball already there.</li>
       <li><strong>Cue contact.</strong> If your struck ball touches the cue, it is removed and your opponent places the cue anywhere. Knocking other balls into the cue is legal.</li>
-      <li><strong>Cue pocketed or on the line.</strong> The end stops. Opponent gets 2 points and the hammer. A match never ends this way; another end is played.</li>
+      <li><strong>Cue pocketed or on the line.</strong> The end stops. Opponent gets 2 points and the hammer. If you would still win the match after that, another end is played, so you can’t scratch to protect a lead. If the 2 points put your opponent ahead at the finish, they win.</li>
       <li><strong>The 8-ball.</strong> Pocketed or on the line, the shooting team places it anywhere.</li>
       <li><strong>Spin.</strong> Tap or drag on the white ball above the power stick to pick where the tip strikes. High is follow: your ball keeps rolling after it hits. Low is draw: it spins back, but draw wears off over long shots. Left or right is english, which bends the rebound off a cushion. Spin resets to center after every shot.</li>
       <li><strong>Chalk</strong> (can be turned off in Settings). Each shot wears the chalk off your tip; the chalk meter on the power stick shows what’s left. Tap the chalk cube on the rail to chalk up. Shoot with a bare tip and you risk a miscue, more so the farther from center you strike.</li>
@@ -1251,10 +1251,16 @@ function confirmPlacing() {
 function endByCue(team) {
   const award = other(team); S.scores[award] += 2; S.hammer = award;
   S.log.push({ end: S.endNum, stripe: award === 'stripe' ? 2 : 0, solid: award === 'solid' ? 2 : 0 });
-  if (isEnds() ? S.endNum >= lastEnd() : S.scores[award] >= S.format.value) S.forceExtra = true;
+  // A scratch that would decide the match: if the scratching team would still win, play another end
+  // (no scratching to protect a lead). If the 2 points put the other team ahead, the match is over.
+  const reached = isEnds() ? S.endNum >= lastEnd() : S.scores[award] >= S.format.value;
+  S.forceExtra = reached && S.scores[team] > S.scores[award];
+  const decides = reached && !S.forceExtra && S.scores[award] > S.scores[team];
   S.result = null; S.phase = 'result'; hud();
   showResult(S.balls.find(b => b.id === 'cue').on ? 'Scratch on the line' : 'Scratch!',
-    `${teamName(award)} ${award === 'stripe' && S.mode === 'cpu' ? 'get' : 'gets'} 2 points and the hammer.${S.forceExtra ? ' A match can’t end on the cue, so another end will be played.' : ''}`,
+    `${teamName(award)} ${award === 'stripe' && S.mode === 'cpu' ? 'get' : 'gets'} 2 points and the hammer.`
+      + (S.forceExtra ? ` You can’t win a match by scratching, so another end will be played.`
+        : decides ? ` That wins the match for ${S.mode === 'cpu' && award === 'stripe' ? 'you' : teamName(award)}.` : ''),
     nextLabel(), continueMatch, true);
 }
 
